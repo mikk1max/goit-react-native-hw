@@ -1,18 +1,16 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Header } from '@/components/Header';
 import { ListItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/SearchBar';
 import { categories } from '@/data/mockData';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { colors, spacing, typography } from '@/theme';
 
-const MAX_CONTENT_WIDTH = 480;
-
 export function CategoriesScreen() {
-  const { width } = useWindowDimensions();
+  const { contentWidth, cardWidth } = useResponsiveLayout();
   const [query, setQuery] = useState('');
-  const contentWidth = Math.min(width, MAX_CONTENT_WIDTH);
 
   return (
     <View style={styles.screen}>
@@ -24,15 +22,11 @@ export function CategoriesScreen() {
 
           <Text style={[typography.sectionTitle, styles.sectionTitle]}>All categories</Text>
 
-          <View>
+          <View style={styles.grid}>
             {categories.map((category) => (
-              <ListItem
-                key={category.id}
-                title={category.label}
-                leftIcon="heart"
-                showChevron
-                onPress={() => {}}
-              />
+              <View key={category.id} style={{ width: cardWidth }}>
+                <ListItem title={category.label} leftIcon="heart" showChevron onPress={() => {}} />
+              </View>
             ))}
           </View>
         </View>
@@ -57,5 +51,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.text,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
 });

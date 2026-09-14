@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
@@ -8,13 +8,11 @@ import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
 import { pricingList, reviews } from '@/data/mockData';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { colors, spacing, typography } from '@/theme';
 
-const MAX_CONTENT_WIDTH = 480;
-
 export function ProDetailsScreen() {
-  const { width } = useWindowDimensions();
-  const contentWidth = Math.min(width, MAX_CONTENT_WIDTH);
+  const { contentWidth, cardWidth } = useResponsiveLayout();
 
   return (
     <View style={styles.screen}>
@@ -36,21 +34,20 @@ export function ProDetailsScreen() {
           </Text>
 
           <Text style={typography.sectionTitle}>Pricing</Text>
-          <View>
+          <View style={styles.grid}>
             {pricingList.map((item) => (
-              <ListItem key={item.id} title={item.title} subtitle={item.subtitle} />
+              <View key={item.id} style={{ width: cardWidth }}>
+                <ListItem title={item.title} subtitle={item.subtitle} />
+              </View>
             ))}
           </View>
 
           <Text style={typography.sectionTitle}>Reviews</Text>
-          <View style={styles.reviewList}>
+          <View style={styles.grid}>
             {reviews.map((review) => (
-              <ProCard
-                key={review.id}
-                name={review.name}
-                role={review.role}
-                rating={review.rating}
-              />
+              <View key={review.id} style={{ width: cardWidth }}>
+                <ProCard name={review.name} role={review.role} rating={review.rating} />
+              </View>
             ))}
           </View>
         </View>
@@ -87,7 +84,9 @@ const styles = StyleSheet.create({
   about: {
     color: colors.text,
   },
-  reviewList: {
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   footer: {

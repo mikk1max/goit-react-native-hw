@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
@@ -9,16 +9,13 @@ import { Header } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
 import { categories, recommendedPros } from '@/data/mockData';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { colors, radii, spacing, typography } from '@/theme';
 
-/** Phones stay full-width; tablets/landscape get a centered reading column. */
-const MAX_CONTENT_WIDTH = 480;
-
 export function HomeScreen() {
-  const { width } = useWindowDimensions();
+  const { contentWidth, cardWidth } = useResponsiveLayout();
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
-  const contentWidth = Math.min(width, MAX_CONTENT_WIDTH);
 
   return (
     <View style={styles.screen}>
@@ -53,15 +50,11 @@ export function HomeScreen() {
 
           <Text style={[typography.sectionTitle, styles.sectionTitle]}>Recommended pros</Text>
 
-          <View style={styles.proList}>
+          <View style={styles.grid}>
             {recommendedPros.map((pro) => (
-              <ProCard
-                key={pro.id}
-                name={pro.name}
-                role={pro.role}
-                rating={pro.rating}
-                onPress={() => {}}
-              />
+              <View key={pro.id} style={{ width: cardWidth }}>
+                <ProCard name={pro.name} role={pro.role} rating={pro.rating} onPress={() => {}} />
+              </View>
             ))}
           </View>
         </View>
@@ -113,7 +106,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: colors.text,
   },
-  proList: {
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
 });
