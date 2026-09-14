@@ -42,7 +42,6 @@ yarn-error.*
 
 # local notes, not part of the submission
 *.md
-!LICENSE.md
 
 # editor/agent-local config
 .claude/
