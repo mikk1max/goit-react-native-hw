@@ -1,9 +1,6 @@
 import { Platform } from 'react-native';
 
-/**
- * iOS reads shadow* props, Android only respects `elevation` — Platform.select
- * keeps both in one token instead of scattering the branch across components.
- */
+/** iOS reads shadow* props, Android only reads `elevation` — one token covers both. */
 export const shadows = {
   card: Platform.select({
     ios: {

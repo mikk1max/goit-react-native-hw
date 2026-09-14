@@ -1,10 +1,6 @@
 import { Platform, type TextStyle } from 'react-native';
 
-/**
- * Inter is loaded via `useFonts` in App.tsx (see @expo-google-fonts/inter).
- * Fall back to the platform system font so the UI still renders correctly
- * for the one frame before the fonts finish loading.
- */
+/** Inter is loaded via `useFonts` in App.tsx; falls back to the system font until then. */
 const fontFamily = {
   regular: Platform.select({
     ios: 'Inter_400Regular',

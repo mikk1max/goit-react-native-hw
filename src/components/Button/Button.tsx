@@ -88,8 +88,7 @@ const styles = StyleSheet.create({
   },
   primary: {
     backgroundColor: colors.primary,
-    // A subtle shadow only reads well on iOS; Android gets its own elevation so
-    // the button doesn't look like it's floating on a page that has none.
+    // iOS shadow vs Android elevation, per Platform.select.
     ...Platform.select({
       ios: {
         shadowColor: colors.primary,

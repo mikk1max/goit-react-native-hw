@@ -1,8 +1,4 @@
-/**
- * Color palette extracted from the Figma design system (Shepeta_cross_assignments).
- * Never inline hex values in component styles — reference these tokens instead,
- * so a future re-theme only touches this file.
- */
+/** Palette from the Figma design system — reference these, never inline hex values. */
 export const colors = {
   primary: '#006FFD',
   primaryMedium: '#6FBAFF',

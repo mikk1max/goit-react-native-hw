@@ -21,8 +21,7 @@ export type TabBarProps = {
 };
 
 export function TabBar({ items, activeKey, onChange }: TabBarProps) {
-  // The home-indicator area on iOS needs real breathing room; Android's
-  // gesture bar is already accounted for by the safe-area inset alone.
+  // Extra padding for the iOS home indicator; Android's inset is enough alone.
   const insets = useSafeAreaInsets();
 
   return (
