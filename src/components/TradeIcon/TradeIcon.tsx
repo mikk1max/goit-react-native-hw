@@ -33,13 +33,16 @@ export function TradeIcon({ name, size = 20, color = '#2F3036' }: TradeIconProps
       {name === 'electrical' && (
         <G>
           {/* The mask alone fully determines the visible bolt shape — the SVG's own
-              viewBox already clips anything outside it, no separate clipPath needed. */}
+              viewBox already clips anything outside it, no separate clipPath needed.
+              Mask fill must stay pure white: an SVG mask reads the *luminance* of its
+              content as opacity, so passing `color` here made the bolt as transparent
+              as that color's own luminance instead of fully opaque. */}
           <Mask id={`${uid}-mask`} maskUnits="userSpaceOnUse" x="2" y="0" width="16" height="21">
             <Path
               fillRule="evenodd"
               clipRule="evenodd"
               d="M11.3001 0.0503861C11.5031 0.121326 11.6805 0.262376 11.8064 0.453024C11.9323 0.643672 12.0001 0.873976 12.0001 1.11044V6.66628H16.0001C16.183 6.66619 16.3625 6.72185 16.5189 6.82721C16.6753 6.93256 16.8028 7.08357 16.8873 7.2638C16.9719 7.44404 17.0103 7.64659 16.9985 7.84942C16.9866 8.05224 16.9249 8.24757 16.8201 8.41415L9.82012 19.5258C9.69829 19.7198 9.52395 19.8655 9.32246 19.9417C9.12097 20.0179 8.90284 20.0207 8.69982 19.9497C8.49679 19.8787 8.31945 19.7375 8.19361 19.5468C8.06777 19.356 7.99998 19.1256 8.00012 18.8891V13.3333H4.00012C3.8172 13.3334 3.63776 13.2777 3.48134 13.1724C3.32491 13.067 3.19748 12.916 3.11293 12.7358C3.02837 12.5555 2.98993 12.353 3.00177 12.1502C3.01362 11.9473 3.07531 11.752 3.18012 11.5854L10.1801 0.473741C10.3021 0.280161 10.4765 0.134849 10.6779 0.0589156C10.8793 -0.0170176 11.0973 -0.0196161 11.3001 0.0514973V0.0503861Z"
-              fill={color}
+              fill="#FFFFFF"
             />
           </Mask>
           <G mask={`url(#${uid}-mask)`}>
