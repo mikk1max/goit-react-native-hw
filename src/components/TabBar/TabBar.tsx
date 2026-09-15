@@ -1,7 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { GlassSurface } from '@/components/GlassSurface';
 import { colors, radii, shadows, spacing, typography } from '@/theme';
@@ -24,6 +32,8 @@ export type TabBarProps = {
 /** Fixed content height of the pill (vertical padding + icon + gap + label). */
 const BAR_HEIGHT = 60;
 const BOTTOM_OFFSET = spacing.sm;
+const INDICATOR_INSET = spacing.xs;
+const SLIDE_DURATION = 220;
 
 /** How much bottom padding a screen needs so content doesn't scroll under the floating bar. */
 export function useFloatingTabBarClearance() {
@@ -33,10 +43,51 @@ export function useFloatingTabBarClearance() {
 
 /**
  * A compact Liquid Glass capsule that hugs its own content and floats,
- * centered, above the screen — not a bar stretched edge to edge.
+ * centered, above the screen — not a bar stretched edge to edge. The active
+ * tab is a single indicator that slides between tabs instead of a highlight
+ * popping in and out on each press.
  */
 export function TabBar({ items, activeKey, onChange }: TabBarProps) {
   const insets = useSafeAreaInsets();
+
+  const indicatorX = useSharedValue(0);
+  const indicatorWidth = useSharedValue(0);
+  const hasMeasured = useRef(false);
+  const layouts = useRef<Record<string, { x: number; width: number }>>({}).current;
+
+  const moveIndicatorTo = (key: string, animated: boolean) => {
+    const layout = layouts[key];
+    if (!layout) return;
+    if (animated) {
+      indicatorX.value = withTiming(layout.x, { duration: SLIDE_DURATION });
+      indicatorWidth.value = withTiming(layout.width, { duration: SLIDE_DURATION });
+    } else {
+      indicatorX.value = layout.x;
+      indicatorWidth.value = layout.width;
+    }
+  };
+
+  const handleTabLayout = (key: string, event: LayoutChangeEvent) => {
+    const { x, width } = event.nativeEvent.layout;
+    layouts[key] = { x, width };
+    if (key === activeKey && !hasMeasured.current) {
+      moveIndicatorTo(key, false);
+      hasMeasured.current = true;
+    }
+  };
+
+  useEffect(() => {
+    if (hasMeasured.current) {
+      moveIndicatorTo(activeKey, true);
+    }
+    // moveIndicatorTo closes over shared values that don't need to retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeKey]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: indicatorX.value }],
+    width: indicatorWidth.value,
+  }));
 
   return (
     <View
@@ -44,29 +95,66 @@ export function TabBar({ items, activeKey, onChange }: TabBarProps) {
       pointerEvents="box-none"
     >
       <GlassSurface style={styles.pill} glassEffectStyle="regular" isInteractive>
-        {items.map((item) => {
-          const isActive = item.key === activeKey;
-          return (
-            <Pressable
-              key={item.key}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isActive }}
-              onPress={() => onChange(item.key)}
-              style={[styles.tab, isActive && styles.activeTab]}
-            >
-              <Ionicons
-                name={isActive ? item.activeIcon : item.icon}
-                size={20}
-                color={isActive ? colors.primary : colors.textMuted}
-              />
-              <Text style={[typography.actionS, isActive ? styles.activeLabel : styles.label]}>
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        <Animated.View style={[styles.indicator, indicatorStyle]} />
+        {items.map((item) => (
+          <TabBarButton
+            key={item.key}
+            item={item}
+            isActive={item.key === activeKey}
+            onPress={() => onChange(item.key)}
+            onLayout={(event) => handleTabLayout(item.key, event)}
+          />
+        ))}
       </GlassSurface>
     </View>
+  );
+}
+
+type TabBarButtonProps = {
+  item: TabBarItem;
+  isActive: boolean;
+  onPress: () => void;
+  onLayout: (event: LayoutChangeEvent) => void;
+};
+
+/** Its own component so the press bounce is a per-tab Reanimated shared value, not shared state. */
+function TabBarButton({ item, isActive, onPress, onLayout }: TabBarButtonProps) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (isActive) {
+      scale.value = withSequence(
+        withTiming(1.15, { duration: 100 }),
+        withSpring(1, { damping: 10, stiffness: 200 }),
+      );
+    }
+    // `scale` is a stable Reanimated shared value, not a reactive dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive]);
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: isActive }}
+      onPress={onPress}
+      onLayout={onLayout}
+      style={styles.tab}
+    >
+      <Animated.View style={iconStyle}>
+        <Ionicons
+          name={isActive ? item.activeIcon : item.icon}
+          size={20}
+          color={isActive ? colors.primary : colors.textMuted}
+        />
+      </Animated.View>
+      <Text style={[typography.actionS, isActive ? styles.activeLabel : styles.label]}>
+        {item.label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -86,15 +174,20 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
     ...shadows.raised,
   },
+  indicator: {
+    position: 'absolute',
+    top: INDICATOR_INSET,
+    bottom: INDICATOR_INSET,
+    left: 0,
+    borderRadius: radii.sm,
+    backgroundColor: colors.primaryLightest,
+  },
   tab: {
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xxs,
     paddingHorizontal: spacing.sm,
     borderRadius: radii.sm,
-  },
-  activeTab: {
-    backgroundColor: colors.primaryLightest,
   },
   label: {
     color: colors.textMuted,
