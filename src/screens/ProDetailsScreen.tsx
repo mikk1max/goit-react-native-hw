@@ -24,7 +24,7 @@ export function ProDetailsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <View style={styles.profileHeader}>
             {/* This screen is always Marek Nowak for now (see Roadmap: no
@@ -82,6 +82,13 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  scroll: {
+    flex: 1,
+    // Web flexbox won't let a flex child shrink below its content's natural
+    // height unless minHeight is reset — without this the ScrollView grows
+    // past the footer instead of scrolling internally.
+    minHeight: 0,
   },
   scrollContent: {
     alignItems: 'center',
