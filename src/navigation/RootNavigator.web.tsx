@@ -25,6 +25,11 @@ function HomeStackNavigator() {
   );
 }
 
+/** No bookings-list screen exists yet — see RootNavigator.native.tsx's comment. */
+function BookingsTab() {
+  return <PlaceholderScreen title="Bookings" icon="calendar-outline" />;
+}
+
 function MessagesTab() {
   return <PlaceholderScreen title="Messages" icon="chatbubble-outline" />;
 }
@@ -77,7 +82,7 @@ export function RootNavigator(_props: RootNavigatorProps) {
         />
         <Tab.Screen
           name="Bookings"
-          component={ProDetailsScreen}
+          component={BookingsTab}
           options={{
             tabBarIcon: ({ color, size }) => (
               <Ionicons name={TAB_ICONS.Bookings} size={size} color={color} />

@@ -16,6 +16,15 @@ import type { ResolvedTabIcon } from './useAndroidTabIcons';
 const Tab = createNativeBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
+/**
+ * There's no bookings-list screen yet (not part of this assignment's Figma
+ * frames — see the Roadmap), so this tab is an honest "coming soon" rather
+ * than showing an unrelated pro's profile as a placeholder for it.
+ */
+function BookingsTab() {
+  return <PlaceholderScreen title="Bookings" icon="calendar-outline" />;
+}
+
 /** Home is the only tab that pushes a detail screen — that's where the native slide + swipe-back shows up. */
 function HomeStackNavigator() {
   return (
@@ -95,7 +104,7 @@ export function RootNavigator({ androidIcons }: RootNavigatorProps) {
         />
         <Tab.Screen
           name="Bookings"
-          component={ProDetailsScreen}
+          component={BookingsTab}
           options={{
             tabBarLabel: 'Bookings',
             tabBarIcon: makeTabIcon('calendar', 'Bookings', androidIcons),
