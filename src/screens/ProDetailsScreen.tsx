@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
@@ -10,12 +11,17 @@ import { Tag } from '@/components/Tag';
 import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { pricingList, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useCanGoBackLocally } from '@/navigation/hooks';
 import { colors, spacing, typography } from '@/theme';
 
 export function ProDetailsScreen() {
+  const navigation = useNavigation();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const tabBarClearance = useFloatingTabBarClearance();
+  // Reachable both as a pushed detail screen (from Home) and as the flat
+  // "Bookings" tab root — only show the back button when there's somewhere to go back to.
+  const canGoBack = useCanGoBackLocally();
 
   return (
     <View style={styles.screen}>
@@ -58,7 +64,7 @@ export function ProDetailsScreen() {
         <Button title="Book appointment" />
       </View>
 
-      <Header title="Pro profile" onBackPress={() => {}} />
+      <Header title="Pro profile" onBackPress={canGoBack ? navigation.goBack : undefined} />
     </View>
   );
 }

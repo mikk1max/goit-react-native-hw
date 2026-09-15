@@ -35,7 +35,7 @@ export function CategoriesScreen() {
         </View>
       </ScrollView>
 
-      <Header title="Categories" onBackPress={() => {}} />
+      <Header title="Categories" />
     </View>
   );
 }

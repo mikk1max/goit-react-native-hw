@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -11,9 +13,11 @@ import { SearchBar } from '@/components/SearchBar';
 import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { categories, recommendedPros } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { HomeStackParamList } from '@/navigation/types';
 import { colors, radii, spacing, typography } from '@/theme';
 
 export function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const tabBarClearance = useFloatingTabBarClearance();
@@ -56,7 +60,12 @@ export function HomeScreen() {
           <View style={styles.grid}>
             {recommendedPros.map((pro) => (
               <View key={pro.id} style={{ width: cardWidth }}>
-                <ProCard name={pro.name} role={pro.role} rating={pro.rating} onPress={() => {}} />
+                <ProCard
+                  name={pro.name}
+                  role={pro.role}
+                  rating={pro.rating}
+                  onPress={() => navigation.navigate('ProDetails', { proId: pro.id })}
+                />
               </View>
             ))}
           </View>
