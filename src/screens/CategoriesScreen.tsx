@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ListItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/SearchBar';
+import { TradeIcon } from '@/components/TradeIcon';
 import { categories } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 // Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
@@ -32,7 +33,7 @@ export function CategoriesScreen() {
               <View key={category.id} style={{ width: cardWidth }}>
                 <ListItem
                   title={category.label}
-                  leftIcon={category.icon}
+                  leftIcon={<TradeIcon name={category.icon} color={colors.textSecondary} />}
                   showChevron
                   onPress={() => {}}
                 />

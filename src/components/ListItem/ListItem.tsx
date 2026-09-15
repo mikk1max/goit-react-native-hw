@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radii, spacing, typography } from '@/theme';
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
-
 export type ListItemProps = {
   title: string;
   subtitle?: string;
-  leftIcon?: IconName;
+  /** Whatever the caller renders — an Ionicons glyph, a TradeIcon, anything sized to fit. */
+  leftIcon?: ReactNode;
   /** Shows a trailing chevron, e.g. for navigating into a category. */
   showChevron?: boolean;
   onPress?: () => void;
@@ -29,9 +28,7 @@ export function ListItem({
       disabled={!onPress}
       style={styles.container}
     >
-      {leftIcon ? (
-        <Ionicons name={leftIcon} size={20} color={colors.primary} style={styles.leftIcon} />
-      ) : null}
+      {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
 
       <View style={styles.content}>
         <Text style={[typography.bodyM, styles.title]} numberOfLines={1}>
@@ -60,6 +57,7 @@ const styles = StyleSheet.create({
   },
   leftIcon: {
     width: 20,
+    alignItems: 'center',
   },
   content: {
     flex: 1,

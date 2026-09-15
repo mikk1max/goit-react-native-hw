@@ -9,12 +9,12 @@ export type Pro = {
 };
 
 export const categories: Category[] = [
-  { id: 'plumbing', label: 'Plumbing', icon: 'water' },
-  { id: 'electrical', label: 'Electrical', icon: 'flash' },
-  { id: 'cleaning', label: 'Cleaning', icon: 'sparkles' },
-  { id: 'painting', label: 'Painting', icon: 'color-palette' },
-  { id: 'carpentry', label: 'Carpentry', icon: 'hammer' },
-  { id: 'gardening', label: 'Gardening', icon: 'leaf' },
+  { id: 'plumbing', label: 'Plumbing', icon: 'plumbing' },
+  { id: 'electrical', label: 'Electrical', icon: 'electrical' },
+  { id: 'cleaning', label: 'Cleaning', icon: 'cleaning' },
+  { id: 'painting', label: 'Painting', icon: 'painting' },
+  { id: 'carpentry', label: 'Carpentry', icon: 'carpentry' },
+  { id: 'gardening', label: 'Gardening', icon: 'gardening' },
 ];
 
 /** DiceBear generates a synthetic illustrated avatar per seed — no real people, no API key. */

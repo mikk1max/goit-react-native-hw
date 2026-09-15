@@ -1,17 +1,13 @@
-import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 
 import { Tag } from '@/components/Tag';
+import type { TradeIconName } from '@/components/TradeIcon';
 import { spacing } from '@/theme';
 
 export type Category = {
   id: string;
   label: string;
-  /** Not rendered by Tag itself (the Figma component is text-only) — used by
-   *  CategoriesScreen's ListItem, which does have a left-icon slot. Stored
-   *  once here so both screens agree on the same category → icon mapping. */
-  icon: ComponentProps<typeof Ionicons>['name'];
+  icon: TradeIconName;
 };
 
 export type CategoryListProps = {
@@ -31,6 +27,7 @@ export function CategoryList({ categories, selectedId, onSelect }: CategoryListP
       renderItem={({ item }) => (
         <Tag
           label={item.label}
+          icon={item.icon}
           selected={item.id === selectedId}
           onPress={() => onSelect?.(item.id)}
         />
