@@ -8,7 +8,7 @@ import { useCallback, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { StyleSheet, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { TabBar, type TabBarItem } from '@/components/TabBar';
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
@@ -47,11 +47,13 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.root} edges={['top']} onLayout={onLayoutRootView}>
+      {/* No inset padding here — Header and TabBar float and account for
+          insets themselves, so content renders truly edge to edge. */}
+      <View style={styles.root} onLayout={onLayoutRootView}>
         <View style={styles.content}>{renderActiveScreen(activeTab)}</View>
         <TabBar items={TABS} activeKey={activeTab} onChange={setActiveTab} />
         <StatusBar style="dark" />
-      </SafeAreaView>
+      </View>
     </SafeAreaProvider>
   );
 }

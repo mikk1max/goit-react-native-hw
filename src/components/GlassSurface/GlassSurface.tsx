@@ -6,6 +6,8 @@ export type GlassSurfaceProps = ViewProps & {
   /** iOS 26 Liquid Glass variant — ignored on the BlurView fallback. */
   glassEffectStyle?: GlassStyle;
   tintColor?: string;
+  /** Lets the glass "squish" on press, like Apple's own buttons — ignored on the fallback. */
+  isInteractive?: boolean;
 };
 
 // Some iOS 26 betas ship without the native API (expo/expo#40911) — never let
@@ -27,13 +29,20 @@ const supportsLiquidGlass = checkLiquidGlassSupport();
 export function GlassSurface({
   glassEffectStyle = 'regular',
   tintColor,
+  isInteractive,
   style,
   children,
   ...rest
 }: GlassSurfaceProps) {
   if (supportsLiquidGlass) {
     return (
-      <GlassView glassEffectStyle={glassEffectStyle} tintColor={tintColor} style={style} {...rest}>
+      <GlassView
+        glassEffectStyle={glassEffectStyle}
+        tintColor={tintColor}
+        isInteractive={isInteractive}
+        style={style}
+        {...rest}
+      >
         {children}
       </GlassView>
     );
