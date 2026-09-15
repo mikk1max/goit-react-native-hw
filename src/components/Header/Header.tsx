@@ -10,32 +10,35 @@ export type HeaderProps = {
   title: string;
   /** Renders a back chevron on the left and calls this when tapped. */
   onBackPress?: () => void;
-  /** Custom right-side slot — an Avatar, an icon button, or nothing. */
+  /**
+   * Custom right-side slot — an Avatar, or a future icon button. A button
+   * placed here should wrap itself in its own <GlassSurface>, same as the
+   * back button, to match — this slot doesn't force any styling of its own.
+   */
   rightElement?: ReactNode;
 };
 
-const BAR_HEIGHT = 52;
+const PIECE_HEIGHT = 36;
 const TOP_OFFSET = spacing.sm;
 
 /** How much top padding a screen needs so content doesn't scroll under the floating header. */
 export function useFloatingHeaderClearance() {
   const insets = useSafeAreaInsets();
-  return insets.top + TOP_OFFSET + BAR_HEIGHT + spacing.sm;
+  return insets.top + TOP_OFFSET + PIECE_HEIGHT + spacing.sm;
 }
 
 /**
- * A floating Liquid Glass capsule, same visual language as TabBar (rounded,
- * shadow, no hard divider line) rather than a flat docked bar with a hairline
- * border — that read as a plain opaque UI bar and didn't match the tab bar at
- * all. Still gives the title a real background so it doesn't collide with
- * whatever's scrolled underneath, iOS/Slack nav-bar style.
+ * Three independent Liquid Glass pieces in a row — back button, title,
+ * (future) right-side action — not one shared tile behind all of them.
+ * Matches Slack's nav bar: a back chevron, a title, and a huddle button all
+ * float as their own elements over the same content, side by side.
  */
 export function Header({ title, onBackPress, rightElement }: HeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.floatingLayer, { top: insets.top + TOP_OFFSET }]} pointerEvents="box-none">
-      <GlassSurface style={styles.bar}>
+      <View style={styles.row}>
         <View style={styles.side}>
           {onBackPress ? (
             <Pressable
@@ -44,17 +47,21 @@ export function Header({ title, onBackPress, rightElement }: HeaderProps) {
               hitSlop={8}
               onPress={onBackPress}
             >
-              <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
+              <GlassSurface style={styles.backButton} isInteractive>
+                <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+              </GlassSurface>
             </Pressable>
           ) : null}
         </View>
 
-        <Text style={[typography.h4, styles.title]} numberOfLines={1}>
-          {title}
-        </Text>
+        <GlassSurface style={styles.titlePill}>
+          <Text style={[typography.h4, styles.title]} numberOfLines={1}>
+            {title}
+          </Text>
+        </GlassSurface>
 
         <View style={[styles.side, styles.rightSide]}>{rightElement}</View>
-      </GlassSurface>
+      </View>
     </View>
   );
 }
@@ -67,14 +74,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  bar: {
-    height: BAR_HEIGHT,
-    marginHorizontal: spacing.md,
-    borderRadius: radii.lg,
+  row: {
+    height: PIECE_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    ...shadows.raised,
   },
   side: {
     width: SIDE_WIDTH,
@@ -83,9 +88,30 @@ const styles = StyleSheet.create({
   rightSide: {
     alignItems: 'flex-end',
   },
+  backButton: {
+    width: PIECE_HEIGHT,
+    height: PIECE_HEIGHT,
+    borderRadius: radii.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // The glass fill alone is nearly invisible with nothing behind it to
+    // blur — a rim keeps each piece readable as its own shape regardless.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.surfaceMedium,
+    ...shadows.card,
+  },
+  titlePill: {
+    height: PIECE_HEIGHT,
+    maxWidth: '60%',
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.surfaceMedium,
+    ...shadows.card,
+  },
   title: {
-    flex: 1,
-    textAlign: 'center',
     color: colors.textPrimary,
   },
 });
