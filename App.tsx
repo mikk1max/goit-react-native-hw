@@ -7,11 +7,13 @@ import {
 import { useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { RootNavigator } from '@/navigation/RootNavigator';
+import { TAB_ANDROID_ICON_NAMES, useAndroidTabIcons } from '@/navigation/useAndroidTabIcons';
+import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,14 +23,17 @@ export default function App() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const androidTabIcons = useAndroidTabIcons(TAB_ANDROID_ICON_NAMES, colors.textPrimary);
+  // Only Android needs its tab icons rasterized up front; iOS renders sfSymbols natively.
+  const ready = fontsLoaded && (Platform.OS !== 'android' || androidTabIcons !== null);
 
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
+    if (ready) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [ready]);
 
-  if (!fontsLoaded) {
+  if (!ready) {
     return null;
   }
 
@@ -36,7 +41,7 @@ export default function App() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <View style={styles.root} onLayout={onLayoutRootView}>
-          <RootNavigator />
+          <RootNavigator androidIcons={androidTabIcons} />
           <StatusBar style="dark" />
         </View>
       </SafeAreaProvider>

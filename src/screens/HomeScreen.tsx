@@ -10,7 +10,6 @@ import { CategoryList } from '@/components/CategoryList';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
-import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { categories, recommendedPros } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { HomeStackParamList } from '@/navigation/types';
@@ -20,15 +19,12 @@ export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
-  const tabBarClearance = useFloatingTabBarClearance();
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
   return (
     <View style={styles.screen}>
-      <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarClearance }]}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <SearchBar
             value={query}
@@ -84,6 +80,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
+    paddingBottom: spacing.xl,
   },
   content: {
     gap: spacing.lg,

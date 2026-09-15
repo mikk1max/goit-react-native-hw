@@ -8,7 +8,6 @@ import { ListItem } from '@/components/ListItem';
 import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
-import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { pricingList, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useCanGoBackLocally } from '@/navigation/hooks';
@@ -18,7 +17,6 @@ export function ProDetailsScreen() {
   const navigation = useNavigation();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
-  const tabBarClearance = useFloatingTabBarClearance();
   // Reachable both as a pushed detail screen (from Home) and as the flat
   // "Bookings" tab root — only show the back button when there's somewhere to go back to.
   const canGoBack = useCanGoBackLocally();
@@ -60,7 +58,7 @@ export function ProDetailsScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: tabBarClearance }]}>
+      <View style={styles.footer}>
         <Button title="Book appointment" />
       </View>
 
@@ -100,5 +98,6 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
+    paddingBottom: spacing.xl,
   },
 });

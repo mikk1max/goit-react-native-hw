@@ -7,4 +7,3 @@ export * from './ProCard';
 export * from './SearchBar';
 export * from './StarRating';
 export * from './Tag';
-export * from './TabBar';

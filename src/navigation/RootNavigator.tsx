@@ -1,25 +1,20 @@
-import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@bottom-tabs/react-navigation';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Platform } from 'react-native';
+import type { AppleIcon } from 'react-native-bottom-tabs';
 
-import { TabBar, type TabBarItem } from '@/components/TabBar';
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
+import { colors } from '@/theme';
 
 import type { HomeStackParamList, RootTabParamList } from './types';
+import type { ResolvedTabIcon } from './useAndroidTabIcons';
 
-const Tab = createBottomTabNavigator<RootTabParamList>();
+const Tab = createNativeBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
-
-const TAB_META: Record<keyof RootTabParamList, Omit<TabBarItem, 'key'>> = {
-  Home: { label: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  Categories: { label: 'Categories', icon: 'grid-outline', activeIcon: 'grid' },
-  Bookings: { label: 'Bookings', icon: 'calendar-outline', activeIcon: 'calendar' },
-  Messages: { label: 'Messages', icon: 'chatbubble-outline', activeIcon: 'chatbubble' },
-  Profile: { label: 'Profile', icon: 'person-outline', activeIcon: 'person' },
-};
 
 /** Home is the only tab that pushes a detail screen — that's where the native slide + swipe-back shows up. */
 function HomeStackNavigator() {
@@ -39,31 +34,97 @@ function ProfileTab() {
   return <PlaceholderScreen title="Profile" icon="person-outline" />;
 }
 
-/** Keeps our floating glass TabBar as the visual, while React Navigation drives focus/routing. */
-function renderTabBar({ state, navigation }: BottomTabBarProps) {
-  const items: TabBarItem[] = state.routes.map((route) => ({
-    key: route.name,
-    ...TAB_META[route.name as keyof RootTabParamList],
-  }));
+export type RootNavigatorProps = {
+  /**
+   * Rasterized Ionicons for Android, resolved once in App.tsx before this ever
+   * renders (see useAndroidTabIcons) — always populated by the time we get
+   * here on Android; always null and unused on iOS, which uses sfSymbol instead.
+   */
+  androidIcons: Record<string, ResolvedTabIcon> | null;
+};
 
-  return (
-    <TabBar
-      items={items}
-      activeKey={state.routes[state.index].name}
-      onChange={(key) => navigation.navigate(key)}
-    />
-  );
+type SFSymbolName = AppleIcon['sfSymbol'];
+type SfSymbolPair = SFSymbolName | { default: SFSymbolName; selected: SFSymbolName };
+
+/** iOS gets real SF Symbols; Android gets the pre-rasterized Ionicons image for that tab. */
+function makeTabIcon(
+  sf: SfSymbolPair,
+  androidKey: string,
+  androidIcons: RootNavigatorProps['androidIcons'],
+) {
+  return ({ focused }: { focused: boolean }) => {
+    if (Platform.OS === 'ios') {
+      return { sfSymbol: typeof sf === 'string' ? sf : focused ? sf.selected : sf.default };
+    }
+    // App.tsx doesn't render RootNavigator until useAndroidTabIcons has resolved
+    // on Android, so this is always populated by the time we get here.
+    return androidIcons![androidKey];
+  };
 }
 
-export function RootNavigator() {
+export function RootNavigator({ androidIcons }: RootNavigatorProps) {
   return (
     <NavigationContainer>
-      <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
-        <Tab.Screen name="Home" component={HomeStackNavigator} />
-        <Tab.Screen name="Categories" component={CategoriesScreen} />
-        <Tab.Screen name="Bookings" component={ProDetailsScreen} />
-        <Tab.Screen name="Messages" component={MessagesTab} />
-        <Tab.Screen name="Profile" component={ProfileTab} />
+      <Tab.Navigator
+        tabBarActiveTintColor={colors.primary}
+        tabBarInactiveTintColor={colors.textMuted}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeStackNavigator}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: makeTabIcon(
+              { default: 'house', selected: 'house.fill' },
+              'Home',
+              androidIcons,
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Categories"
+          component={CategoriesScreen}
+          options={{
+            tabBarLabel: 'Categories',
+            tabBarIcon: makeTabIcon(
+              { default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' },
+              'Categories',
+              androidIcons,
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Bookings"
+          component={ProDetailsScreen}
+          options={{
+            tabBarLabel: 'Bookings',
+            tabBarIcon: makeTabIcon('calendar', 'Bookings', androidIcons),
+          }}
+        />
+        <Tab.Screen
+          name="Messages"
+          component={MessagesTab}
+          options={{
+            tabBarLabel: 'Messages',
+            tabBarIcon: makeTabIcon(
+              { default: 'bubble.left', selected: 'bubble.left.fill' },
+              'Messages',
+              androidIcons,
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileTab}
+          options={{
+            tabBarLabel: 'Profile',
+            tabBarIcon: makeTabIcon(
+              { default: 'person.crop.circle', selected: 'person.crop.circle.fill' },
+              'Profile',
+              androidIcons,
+            ),
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
