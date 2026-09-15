@@ -8,7 +8,7 @@ import { ListItem } from '@/components/ListItem';
 import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
-import { pricingList, reviews } from '@/data/mockData';
+import { pricingList, recommendedPros, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 // Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
 // eslint-disable-next-line import/no-unresolved
@@ -27,7 +27,9 @@ export function ProDetailsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <View style={styles.profileHeader}>
-            <Avatar size="lg" />
+            {/* This screen is always Marek Nowak for now (see Roadmap: no
+                real data fetching by proId yet) — his own mock image. */}
+            <Avatar size="lg" imageUrl={recommendedPros[0].imageUrl} />
             <Text style={[typography.h1, styles.name]}>Marek Nowak</Text>
             <StarRating rating={4.9} />
             <Tag label="Plumber" />
@@ -52,7 +54,12 @@ export function ProDetailsScreen() {
           <View style={styles.grid}>
             {reviews.map((review) => (
               <View key={review.id} style={{ width: cardWidth }}>
-                <ProCard name={review.name} role={review.role} rating={review.rating} />
+                <ProCard
+                  name={review.name}
+                  role={review.role}
+                  rating={review.rating}
+                  imageUrl={review.imageUrl}
+                />
               </View>
             ))}
           </View>
