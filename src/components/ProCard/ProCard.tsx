@@ -27,14 +27,17 @@ export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps)
         <Text style={[typography.h4, styles.name]} numberOfLines={1}>
           {name}
         </Text>
-        <View style={styles.metaRow}>
-          {/* flex + minWidth: 0 let this shrink and wrap instead of overflowing
-              past the card — a plain flexDirection: 'row' child won't shrink
-              below its own content width otherwise, no matter how long `role` is. */}
-          <Text style={[typography.bodyS, styles.meta, styles.roleText]}>{role}</Text>
-          <Ionicons name="star" size={12} color={colors.primary} />
-          <Text style={[typography.bodyS, styles.meta]}>{rating.toFixed(1)}</Text>
-        </View>
+        {/* No row wrapper needed here — a Text as the sole child of a column
+            wraps within its parent's width on its own, no flex/minWidth tricks. */}
+        <Text style={[typography.bodyS, styles.meta]}>{role}</Text>
+      </View>
+
+      {/* Its own item in the outer row (not nested with the text above), so it
+          inherits the row's alignItems: 'center' against the *whole* card's
+          height — centered vs the whole tile instead of just the wrapped text. */}
+      <View style={styles.rating}>
+        <Ionicons name="star" size={12} color={colors.primary} />
+        <Text style={[typography.bodyS, styles.meta]}>{rating.toFixed(1)}</Text>
       </View>
 
       {onPress ? <Ionicons name="chevron-forward" size={12} color={colors.textMuted} /> : null}
@@ -62,16 +65,12 @@ const styles = StyleSheet.create({
   name: {
     color: colors.textPrimary,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xxs,
-  },
   meta: {
     color: colors.textMuted,
   },
-  roleText: {
-    flex: 1,
-    minWidth: 0,
+  rating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
   },
 });
