@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/GlassSurface';
-import { colors, spacing, typography } from '@/theme';
+import { colors, radii, shadows, spacing, typography } from '@/theme';
 
 export type HeaderProps = {
   title: string;
@@ -14,26 +14,28 @@ export type HeaderProps = {
   rightElement?: ReactNode;
 };
 
-const BAR_CONTENT_HEIGHT = 44;
-const BOTTOM_GAP = spacing.sm;
+const BAR_HEIGHT = 52;
+const TOP_OFFSET = spacing.sm;
 
-/** How much top padding a screen needs so content doesn't scroll under the docked header. */
+/** How much top padding a screen needs so content doesn't scroll under the floating header. */
 export function useFloatingHeaderClearance() {
   const insets = useSafeAreaInsets();
-  return insets.top + BAR_CONTENT_HEIGHT + BOTTOM_GAP;
+  return insets.top + TOP_OFFSET + BAR_HEIGHT + spacing.sm;
 }
 
 /**
- * Docks as a full-width Liquid Glass bar, iOS/Slack nav-bar style — unlike a
- * fully transparent header, the title has a real background behind it, so it
- * stays legible instead of colliding with whatever's scrolled underneath.
+ * A floating Liquid Glass capsule, same visual language as TabBar (rounded,
+ * shadow, no hard divider line) rather than a flat docked bar with a hairline
+ * border — that read as a plain opaque UI bar and didn't match the tab bar at
+ * all. Still gives the title a real background so it doesn't collide with
+ * whatever's scrolled underneath, iOS/Slack nav-bar style.
  */
 export function Header({ title, onBackPress, rightElement }: HeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <GlassSurface style={[styles.bar, { paddingTop: insets.top }]}>
-      <View style={styles.row}>
+    <View style={[styles.floatingLayer, { top: insets.top + TOP_OFFSET }]} pointerEvents="box-none">
+      <GlassSurface style={styles.bar}>
         <View style={styles.side}>
           {onBackPress ? (
             <Pressable
@@ -52,27 +54,27 @@ export function Header({ title, onBackPress, rightElement }: HeaderProps) {
         </Text>
 
         <View style={[styles.side, styles.rightSide]}>{rightElement}</View>
-      </View>
-    </GlassSurface>
+      </GlassSurface>
+    </View>
   );
 }
 
 const SIDE_WIDTH = 40;
 
 const styles = StyleSheet.create({
-  bar: {
+  floatingLayer: {
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.surfaceMedium,
   },
-  row: {
-    height: BAR_CONTENT_HEIGHT,
+  bar: {
+    height: BAR_HEIGHT,
+    marginHorizontal: spacing.md,
+    borderRadius: radii.lg,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
+    ...shadows.raised,
   },
   side: {
     width: SIDE_WIDTH,
