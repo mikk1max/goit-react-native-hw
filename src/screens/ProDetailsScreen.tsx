@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
@@ -8,7 +9,8 @@ import { ListItem } from '@/components/ListItem';
 import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
-import { pricingList, recommendedPros, reviews } from '@/data/mockData';
+import { WeeklyCalendar } from '@/components/WeeklyCalendar';
+import { currentWeek, pricingList, recommendedPros, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 // Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
 // eslint-disable-next-line import/no-unresolved
@@ -21,6 +23,8 @@ export function ProDetailsScreen() {
   const headerClearance = useFloatingHeaderClearance();
   // Only ever reached by pushing from Home, so there's always a screen to go back to.
   const tabBarHeight = useTabBarHeight();
+  const [week] = useState(currentWeek);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
 
   return (
     <View style={styles.screen}>
@@ -49,6 +53,13 @@ export function ProDetailsScreen() {
               </View>
             ))}
           </View>
+
+          <Text style={typography.sectionTitle}>Availability</Text>
+          <WeeklyCalendar
+            days={week}
+            selectedIndex={selectedDayIndex}
+            onSelect={setSelectedDayIndex}
+          />
 
           <Text style={typography.sectionTitle}>Reviews</Text>
           <View style={styles.grid}>
