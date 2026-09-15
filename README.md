@@ -16,6 +16,9 @@ scheduled or urgent home-service booking.
 
 ## Screenshots
 
+All taken on a real iOS 26 simulator build (`npm run ios`) — that's the
+actual native tab bar and Liquid Glass chrome below, not a web mockup.
+
 | Home                                      | Categories                                            | Pro profile                                             |
 | ----------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------- |
 | ![Home](screenshots/01-home-portrait.png) | ![Categories](screenshots/02-categories-portrait.png) | ![Pro profile](screenshots/03-pro-details-portrait.png) |
@@ -25,13 +28,6 @@ scheduled or urgent home-service booking.
 | Landscape                                       | Tablet                                    | Categories (tablet)                                        | Pro profile (tablet)                                         |
 | ----------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
 | ![Landscape](screenshots/04-home-landscape.png) | ![Tablet](screenshots/05-home-tablet.png) | ![Categories tablet](screenshots/06-categories-tablet.png) | ![Pro details tablet](screenshots/07-pro-details-tablet.png) |
-
-**Native tab bar** on an iOS 26 simulator (real device build, not the web
-preview above — see "Running the project"):
-
-| Home                                                                            | Categories                                                                                  |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| ![Native tab bar — Home](screenshots/08-home-native-tabbar-ios26-simulator.png) | ![Native tab bar — Categories](screenshots/09-categories-native-tabbar-ios26-simulator.png) |
 
 ## Components
 
