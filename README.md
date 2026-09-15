@@ -44,10 +44,11 @@ through props — nothing is hardcoded per screen.
 | `Button`       | primary/secondary variants, optional icon, loading state, optional `tintColor` override |
 | `Header`       | back button + title + right slot, three independent floating Liquid Glass pieces        |
 | `SearchBar`    | controlled `TextInput` with a search icon                                               |
-| `Tag`          | selectable chip — category filters, time slots                                          |
+| `Tag`          | selectable chip — category filters, time slots, optional trade icon                     |
 | `CategoryList` | horizontal `FlatList` of `Tag`s                                                         |
 | `ProCard`      | pro/review card — avatar, name, rating (the "product card")                             |
 | `ListItem`     | generic row — category / pricing / summary lists, each with its own trade icon          |
+| `TradeIcon`    | plumbing/electrical/cleaning/painting/carpentry/gardening pictograms, pulled from Figma |
 | `StarRating`   | 0–5 rating, half-star aware                                                             |
 | `Avatar`       | real photo via `Image`, Ionicons fallback when there's none                             |
 | `GlassSurface` | Liquid Glass on iOS 26+, blurred elsewhere — shared by `Header` and the tab bar         |
@@ -65,6 +66,13 @@ Some notes on a few less obvious decisions:
 - **Avatars use real (placeholder) photos**, not just an icon — `mockData.ts`
   points each pro/reviewer at a small illustrated avatar so `Image` actually
   renders content, not just a fallback glyph.
+- **Category icons are real vector pictograms**, not a generic icon-font
+  glyph reused six times — `TradeIcon` draws the actual plumbing/electrical/
+  cleaning/painting/carpentry/gardening shapes from the Figma file, so each
+  category chip and list row is visually distinct at a glance.
+- **The second tab is labeled "Search"** even though the screen/route is
+  still `Categories` internally — its first element is a search bar, so a
+  magnifying-glass tab reads clearer than a generic grid icon would.
 
 ## Responsive layout
 
@@ -130,6 +138,7 @@ src/
   theme/        colors, typography, spacing, shadows
   components/    Avatar/ Button/ Tag/ StarRating/ Header/
                  SearchBar/ ListItem/ ProCard/ CategoryList/ GlassSurface/
+                 TradeIcon/
   hooks/         useResponsiveLayout.ts
   navigation/    RootNavigator (native/web), tab bar + icon helpers
   screens/       HomeScreen, CategoriesScreen, ProDetailsScreen, PlaceholderScreen
