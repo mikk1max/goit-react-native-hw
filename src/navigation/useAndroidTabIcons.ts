@@ -11,7 +11,7 @@ const ICON_SIZE = 24;
 /** Keyed the same as RootNavigator's tab route names. */
 export const TAB_ANDROID_ICON_NAMES: Record<string, IconName> = {
   Home: 'home',
-  Categories: 'grid',
+  Categories: 'search',
   Bookings: 'calendar',
   Messages: 'chatbubble',
   Profile: 'person',

@@ -90,16 +90,14 @@ export function RootNavigator({ androidIcons }: RootNavigatorProps) {
             ),
           }}
         />
+        {/* Route name stays "Categories" (matches the screen's own title); the
+            Figma tab bar labels this tab "Search" — see mockData/RootNavigator notes. */}
         <Tab.Screen
           name="Categories"
           component={CategoriesScreen}
           options={{
-            tabBarLabel: 'Categories',
-            tabBarIcon: makeTabIcon(
-              { default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' },
-              'Categories',
-              androidIcons,
-            ),
+            tabBarLabel: 'Search',
+            tabBarIcon: makeTabIcon('magnifyingglass', 'Categories', androidIcons),
           }}
         />
         <Tab.Screen

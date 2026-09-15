@@ -40,7 +40,7 @@ function ProfileTab() {
 
 const TAB_ICONS: Record<keyof RootTabParamList, ComponentProps<typeof Ionicons>['name']> = {
   Home: 'home',
-  Categories: 'grid',
+  Categories: 'search',
   Bookings: 'calendar',
   Messages: 'chatbubble',
   Profile: 'person',
@@ -75,6 +75,7 @@ export function RootNavigator(_props: RootNavigatorProps) {
           name="Categories"
           component={CategoriesScreen}
           options={{
+            tabBarLabel: 'Search',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name={TAB_ICONS.Categories} size={size} color={color} />
             ),
