@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/GlassSurface';
@@ -21,8 +21,8 @@ export type TabBarProps = {
   onChange: (key: string) => void;
 };
 
-/** Fixed content height of the bar (icon + gap + label), safe-area padding excluded. */
-const BAR_HEIGHT = 62;
+/** Fixed content height of the pill (vertical padding + icon + gap + label). */
+const BAR_HEIGHT = 60;
 const BOTTOM_OFFSET = spacing.sm;
 
 /** How much bottom padding a screen needs so content doesn't scroll under the floating bar. */
@@ -31,56 +31,70 @@ export function useFloatingTabBarClearance() {
   return insets.bottom + BOTTOM_OFFSET + BAR_HEIGHT + spacing.md;
 }
 
-/** Floats as a Liquid Glass pill above scrollable content, iOS 26 tab-bar style. */
+/**
+ * A compact Liquid Glass capsule that hugs its own content and floats,
+ * centered, above the screen — not a bar stretched edge to edge.
+ */
 export function TabBar({ items, activeKey, onChange }: TabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <GlassSurface
-      style={[styles.container, { bottom: insets.bottom + BOTTOM_OFFSET }]}
-      glassEffectStyle="regular"
+    <View
+      style={[styles.floatingLayer, { bottom: insets.bottom + BOTTOM_OFFSET }]}
+      pointerEvents="box-none"
     >
-      {items.map((item) => {
-        const isActive = item.key === activeKey;
-        return (
-          <Pressable
-            key={item.key}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isActive }}
-            onPress={() => onChange(item.key)}
-            style={styles.tab}
-          >
-            <Ionicons
-              name={isActive ? item.activeIcon : item.icon}
-              size={20}
-              color={isActive ? colors.primary : colors.textMuted}
-            />
-            <Text style={[typography.actionS, isActive ? styles.activeLabel : styles.label]}>
-              {item.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </GlassSurface>
+      <GlassSurface style={styles.pill} glassEffectStyle="regular" isInteractive>
+        {items.map((item) => {
+          const isActive = item.key === activeKey;
+          return (
+            <Pressable
+              key={item.key}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => onChange(item.key)}
+              style={[styles.tab, isActive && styles.activeTab]}
+            >
+              <Ionicons
+                name={isActive ? item.activeIcon : item.icon}
+                size={20}
+                color={isActive ? colors.primary : colors.textMuted}
+              />
+              <Text style={[typography.actionS, isActive ? styles.activeLabel : styles.label]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </GlassSurface>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  floatingLayer: {
     position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
-    height: BAR_HEIGHT,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  pill: {
     flexDirection: 'row',
-    borderRadius: radii.lg,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    height: BAR_HEIGHT,
+    borderRadius: radii.round,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+    gap: spacing.xxs,
     ...shadows.raised,
   },
   tab: {
-    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.sm,
+  },
+  activeTab: {
+    backgroundColor: colors.primaryLightest,
   },
   label: {
     color: colors.textMuted,

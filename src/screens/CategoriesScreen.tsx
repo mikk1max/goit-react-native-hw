@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Header } from '@/components/Header';
+import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ListItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/SearchBar';
 import { useFloatingTabBarClearance } from '@/components/TabBar';
@@ -11,17 +11,16 @@ import { colors, spacing, typography } from '@/theme';
 
 export function CategoriesScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
+  const headerClearance = useFloatingHeaderClearance();
   const tabBarClearance = useFloatingTabBarClearance();
   const [query, setQuery] = useState('');
 
   return (
     <View style={styles.screen}>
-      <Header title="Categories" onBackPress={() => {}} />
-
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarClearance }]}
       >
-        <View style={[styles.content, { width: contentWidth }]}>
+        <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <SearchBar value={query} onChangeText={setQuery} placeholder="Search categories" />
 
           <Text style={[typography.sectionTitle, styles.sectionTitle]}>All categories</Text>
@@ -35,6 +34,8 @@ export function CategoriesScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <Header title="Categories" onBackPress={() => {}} />
     </View>
   );
 }
@@ -50,7 +51,6 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.md,
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
   },
   sectionTitle: {
     color: colors.text,

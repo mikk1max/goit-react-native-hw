@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
-import { Header } from '@/components/Header';
+import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ListItem } from '@/components/ListItem';
 import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
@@ -14,14 +14,13 @@ import { colors, spacing, typography } from '@/theme';
 
 export function ProDetailsScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
+  const headerClearance = useFloatingHeaderClearance();
   const tabBarClearance = useFloatingTabBarClearance();
 
   return (
     <View style={styles.screen}>
-      <Header title="Pro profile" onBackPress={() => {}} />
-
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.content, { width: contentWidth }]}>
+        <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <View style={styles.profileHeader}>
             <Avatar size="lg" />
             <Text style={[typography.h1, styles.name]}>Marek Nowak</Text>
@@ -58,6 +57,8 @@ export function ProDetailsScreen() {
       <View style={[styles.footer, { paddingBottom: tabBarClearance }]}>
         <Button title="Book appointment" />
       </View>
+
+      <Header title="Pro profile" onBackPress={() => {}} />
     </View>
   );
 }
@@ -74,7 +75,6 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.lg,
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
   },
   profileHeader: {
     alignItems: 'center',

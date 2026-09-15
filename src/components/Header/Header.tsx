@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/GlassSurface';
 import { colors, radii, shadows, spacing, typography } from '@/theme';
@@ -13,29 +14,48 @@ export type HeaderProps = {
   rightElement?: ReactNode;
 };
 
+const TOP_OFFSET = spacing.sm;
+const HEADER_HEIGHT = 44;
+const BUTTON_SIZE = 36;
+
+/** How much top padding a screen needs so content doesn't scroll under the floating header. */
+export function useFloatingHeaderClearance() {
+  const insets = useSafeAreaInsets();
+  return insets.top + TOP_OFFSET + HEADER_HEIGHT + spacing.md;
+}
+
+/**
+ * Floats over content instead of docking as a solid bar — the back button is
+ * its own Liquid Glass circle, the title sits directly on the content behind
+ * it, iOS 26 nav-bar style.
+ */
 export function Header({ title, onBackPress, rightElement }: HeaderProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.side}>
-        {onBackPress ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            hitSlop={8}
-            onPress={onBackPress}
-          >
-            <GlassSurface style={styles.backButton}>
-              <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
-            </GlassSurface>
-          </Pressable>
-        ) : null}
+    <View style={[styles.floatingLayer, { top: insets.top + TOP_OFFSET }]} pointerEvents="box-none">
+      <View style={styles.row}>
+        <View style={styles.side}>
+          {onBackPress ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              hitSlop={8}
+              onPress={onBackPress}
+            >
+              <GlassSurface style={styles.backButton} isInteractive>
+                <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+              </GlassSurface>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <Text style={[typography.h4, styles.title]} numberOfLines={1}>
+          {title}
+        </Text>
+
+        <View style={[styles.side, styles.rightSide]}>{rightElement}</View>
       </View>
-
-      <Text style={[typography.h4, styles.title]} numberOfLines={1}>
-        {title}
-      </Text>
-
-      <View style={[styles.side, styles.rightSide]}>{rightElement}</View>
     </View>
   );
 }
@@ -43,25 +63,29 @@ export function Header({ title, onBackPress, rightElement }: HeaderProps) {
 const SIDE_WIDTH = 40;
 
 const styles = StyleSheet.create({
-  container: {
-    height: 56,
+  floatingLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+  },
+  row: {
+    height: HEADER_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
   },
   side: {
     width: SIDE_WIDTH,
     justifyContent: 'center',
   },
   backButton: {
-    width: 32,
-    height: 32,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
     borderRadius: radii.round,
     alignItems: 'center',
     justifyContent: 'center',
-    // The glass fill alone is nearly invisible on a white header — a rim
-    // makes the pill readable even where there's nothing behind it to blur.
+    // The glass fill alone is nearly invisible on a white content area — a
+    // rim keeps the pill readable even where there's nothing behind it to blur.
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.surfaceMedium,
     ...shadows.card,

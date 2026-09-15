@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { CategoryList } from '@/components/CategoryList';
-import { Header } from '@/components/Header';
+import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
 import { useFloatingTabBarClearance } from '@/components/TabBar';
@@ -15,18 +15,17 @@ import { colors, radii, spacing, typography } from '@/theme';
 
 export function HomeScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
+  const headerClearance = useFloatingHeaderClearance();
   const tabBarClearance = useFloatingTabBarClearance();
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
   return (
     <View style={styles.screen}>
-      <Header title="FixIt" rightElement={<Avatar />} />
-
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarClearance }]}
       >
-        <View style={[styles.content, { width: contentWidth }]}>
+        <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <SearchBar
             value={query}
             onChangeText={setQuery}
@@ -63,6 +62,8 @@ export function HomeScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <Header title="FixIt" rightElement={<Avatar />} />
     </View>
   );
 }
@@ -78,7 +79,6 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.lg,
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
   },
   urgentCard: {
     flexDirection: 'row',
