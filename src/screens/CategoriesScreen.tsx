@@ -30,7 +30,12 @@ export function CategoriesScreen() {
           <View style={styles.grid}>
             {categories.map((category) => (
               <View key={category.id} style={{ width: cardWidth }}>
-                <ListItem title={category.label} leftIcon="heart" showChevron onPress={() => {}} />
+                <ListItem
+                  title={category.label}
+                  leftIcon={category.icon}
+                  showChevron
+                  onPress={() => {}}
+                />
               </View>
             ))}
           </View>
