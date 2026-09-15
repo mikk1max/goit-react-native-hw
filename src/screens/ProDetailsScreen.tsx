@@ -10,16 +10,17 @@ import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
 import { pricingList, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-import { useCanGoBackLocally } from '@/navigation/hooks';
+// Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
+// eslint-disable-next-line import/no-unresolved
+import { useTabBarHeight } from '@/navigation/useTabBarHeight';
 import { colors, spacing, typography } from '@/theme';
 
 export function ProDetailsScreen() {
   const navigation = useNavigation();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
-  // Reachable both as a pushed detail screen (from Home) and as the flat
-  // "Bookings" tab root — only show the back button when there's somewhere to go back to.
-  const canGoBack = useCanGoBackLocally();
+  // Only ever reached by pushing from Home, so there's always a screen to go back to.
+  const tabBarHeight = useTabBarHeight();
 
   return (
     <View style={styles.screen}>
@@ -58,11 +59,14 @@ export function ProDetailsScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      {/* Sits outside the ScrollView, so it doesn't get the tab bar's automatic
+          content-inset — needs its own clearance or it renders unreachable
+          underneath the floating/translucent tab bar. */}
+      <View style={[styles.footer, { paddingBottom: tabBarHeight + spacing.md }]}>
         <Button title="Book appointment" />
       </View>
 
-      <Header title="Pro profile" onBackPress={canGoBack ? navigation.goBack : undefined} />
+      <Header title="Pro profile" onBackPress={navigation.goBack} />
     </View>
   );
 }
@@ -98,6 +102,5 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.xl,
   },
 });
