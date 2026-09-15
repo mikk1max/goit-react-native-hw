@@ -1,3 +1,7 @@
+// Must be the very first import — react-native-gesture-handler needs to
+// install its native event handlers before anything else touches them.
+import 'react-native-gesture-handler';
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';
