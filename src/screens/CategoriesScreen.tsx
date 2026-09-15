@@ -17,6 +17,10 @@ export function CategoriesScreen() {
   const headerClearance = useFloatingHeaderClearance();
   const tabBarHeight = useTabBarHeight();
   const [query, setQuery] = useState('');
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredCategories = categories.filter((category) =>
+    category.label.toLowerCase().includes(normalizedQuery),
+  );
 
   return (
     <View style={styles.screen}>
@@ -28,18 +32,24 @@ export function CategoriesScreen() {
 
           <Text style={[typography.sectionTitle, styles.sectionTitle]}>All categories</Text>
 
-          <View style={styles.grid}>
-            {categories.map((category) => (
-              <View key={category.id} style={{ width: cardWidth }}>
-                <ListItem
-                  title={category.label}
-                  leftIcon={<TradeIcon name={category.icon} color={colors.textSecondary} />}
-                  showChevron
-                  onPress={() => {}}
-                />
-              </View>
-            ))}
-          </View>
+          {filteredCategories.length === 0 ? (
+            <Text style={[typography.bodyM, styles.emptyState]}>
+              No categories match your search.
+            </Text>
+          ) : (
+            <View style={styles.grid}>
+              {filteredCategories.map((category) => (
+                <View key={category.id} style={{ width: cardWidth }}>
+                  <ListItem
+                    title={category.label}
+                    leftIcon={<TradeIcon name={category.icon} color={colors.textSecondary} />}
+                    showChevron
+                    onPress={() => {}}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -62,6 +72,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.text,
+  },
+  emptyState: {
+    color: colors.textMuted,
   },
   grid: {
     flexDirection: 'row',
