@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, typography } from '@/theme';
+import { GlassSurface } from '@/components/GlassSurface';
+import { colors, radii, shadows, spacing, typography } from '@/theme';
 
 export type HeaderProps = {
   title: string;
@@ -23,7 +24,9 @@ export function Header({ title, onBackPress, rightElement }: HeaderProps) {
             hitSlop={8}
             onPress={onBackPress}
           >
-            <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
+            <GlassSurface style={styles.backButton}>
+              <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+            </GlassSurface>
           </Pressable>
         ) : null}
       </View>
@@ -50,6 +53,18 @@ const styles = StyleSheet.create({
   side: {
     width: SIDE_WIDTH,
     justifyContent: 'center',
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // The glass fill alone is nearly invisible on a white header — a rim
+    // makes the pill readable even where there's nothing behind it to blur.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.surfaceMedium,
+    ...shadows.card,
   },
   rightSide: {
     alignItems: 'flex-end',

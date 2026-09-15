@@ -7,12 +7,14 @@ import { ListItem } from '@/components/ListItem';
 import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
+import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { pricingList, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { colors, spacing, typography } from '@/theme';
 
 export function ProDetailsScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
+  const tabBarClearance = useFloatingTabBarClearance();
 
   return (
     <View style={styles.screen}>
@@ -53,7 +55,7 @@ export function ProDetailsScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: tabBarClearance }]}>
         <Button title="Book appointment" />
       </View>
     </View>
@@ -92,6 +94,5 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.xl,
   },
 });

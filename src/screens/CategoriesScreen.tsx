@@ -4,19 +4,23 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Header } from '@/components/Header';
 import { ListItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/SearchBar';
+import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { categories } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { colors, spacing, typography } from '@/theme';
 
 export function CategoriesScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
+  const tabBarClearance = useFloatingTabBarClearance();
   const [query, setQuery] = useState('');
 
   return (
     <View style={styles.screen}>
       <Header title="Categories" onBackPress={() => {}} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarClearance }]}
+      >
         <View style={[styles.content, { width: contentWidth }]}>
           <SearchBar value={query} onChangeText={setQuery} placeholder="Search categories" />
 
@@ -42,7 +46,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    paddingBottom: spacing.xl,
   },
   content: {
     gap: spacing.md,

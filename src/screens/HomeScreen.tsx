@@ -8,12 +8,14 @@ import { CategoryList } from '@/components/CategoryList';
 import { Header } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
+import { useFloatingTabBarClearance } from '@/components/TabBar';
 import { categories, recommendedPros } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { colors, radii, spacing, typography } from '@/theme';
 
 export function HomeScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
+  const tabBarClearance = useFloatingTabBarClearance();
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
@@ -21,7 +23,9 @@ export function HomeScreen() {
     <View style={styles.screen}>
       <Header title="FixIt" rightElement={<Avatar />} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarClearance }]}
+      >
         <View style={[styles.content, { width: contentWidth }]}>
           <SearchBar
             value={query}
@@ -70,7 +74,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    paddingBottom: spacing.xl,
   },
   content: {
     gap: spacing.lg,
