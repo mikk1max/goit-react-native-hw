@@ -28,9 +28,10 @@ export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps)
           {name}
         </Text>
         <View style={styles.metaRow}>
-          <Text style={[typography.bodyS, styles.meta]} numberOfLines={1}>
-            {role}
-          </Text>
+          {/* flex + minWidth: 0 let this shrink and wrap instead of overflowing
+              past the card — a plain flexDirection: 'row' child won't shrink
+              below its own content width otherwise, no matter how long `role` is. */}
+          <Text style={[typography.bodyS, styles.meta, styles.roleText]}>{role}</Text>
           <Ionicons name="star" size={12} color={colors.primary} />
           <Text style={[typography.bodyS, styles.meta]}>{rating.toFixed(1)}</Text>
         </View>
@@ -68,5 +69,9 @@ const styles = StyleSheet.create({
   },
   meta: {
     color: colors.textMuted,
+  },
+  roleText: {
+    flex: 1,
+    minWidth: 0,
   },
 });
