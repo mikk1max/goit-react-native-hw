@@ -46,7 +46,11 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     padding: 0,
-    ...typography.bodyM,
+    fontFamily: typography.bodyM.fontFamily,
+    fontSize: typography.bodyM.fontSize,
+    // No explicit lineHeight here: unlike a plain Text, a TextInput clips a
+    // custom font's descenders (g, y, p) when lineHeight is forced tighter
+    // than its real glyph metrics — letting it size the line naturally avoids it.
     color: colors.textPrimary,
   },
 });
