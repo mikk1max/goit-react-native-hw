@@ -26,6 +26,16 @@ export function HomeScreen() {
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredPros = recommendedPros.filter((pro) => {
+    const matchesCategory = !selectedCategoryId || pro.categoryId === selectedCategoryId;
+    const matchesQuery =
+      !normalizedQuery ||
+      pro.name.toLowerCase().includes(normalizedQuery) ||
+      pro.role.toLowerCase().includes(normalizedQuery);
+    return matchesCategory && matchesQuery;
+  });
+
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -42,7 +52,7 @@ export function HomeScreen() {
               as "book calmly", this module means "something's wrong, act now". */}
           <View style={styles.urgentCard}>
             <View style={styles.urgentIcon}>
-              <Ionicons name="heart" size={20} color={colors.urgent} />
+              <Ionicons name="heart" size={20} color={colors.white} />
             </View>
             <View style={styles.urgentText}>
               <Text style={[typography.h4, styles.urgentTitle]}>Urgent request</Text>
@@ -50,35 +60,36 @@ export function HomeScreen() {
                 A pro arrives in about 30 minutes
               </Text>
             </View>
-            <Button
-              title="Book now"
-              variant="secondary"
-              tintColor={colors.urgent}
-              fullWidth={false}
-            />
+            <Button title="Book now" tintColor={colors.urgent} fullWidth={false} />
           </View>
 
           <CategoryList
             categories={categories}
             selectedId={selectedCategoryId}
-            onSelect={setSelectedCategoryId}
+            onSelect={(id) => setSelectedCategoryId((current) => (current === id ? undefined : id))}
           />
 
           <Text style={[typography.sectionTitle, styles.sectionTitle]}>Recommended pros</Text>
 
-          <View style={styles.grid}>
-            {recommendedPros.map((pro) => (
-              <View key={pro.id} style={{ width: cardWidth }}>
-                <ProCard
-                  name={pro.name}
-                  role={pro.role}
-                  rating={pro.rating}
-                  imageUrl={pro.imageUrl}
-                  onPress={() => navigation.navigate('ProDetails', { proId: pro.id })}
-                />
-              </View>
-            ))}
-          </View>
+          {filteredPros.length === 0 ? (
+            <Text style={[typography.bodyM, styles.emptyState]}>
+              No pros match your search yet.
+            </Text>
+          ) : (
+            <View style={styles.grid}>
+              {filteredPros.map((pro) => (
+                <View key={pro.id} style={{ width: cardWidth }}>
+                  <ProCard
+                    name={pro.name}
+                    role={pro.role}
+                    rating={pro.rating}
+                    imageUrl={pro.imageUrl}
+                    onPress={() => navigation.navigate('ProDetails', { proId: pro.id })}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -111,7 +122,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.pill,
-    backgroundColor: colors.white,
+    backgroundColor: colors.urgent,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -127,6 +138,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.text,
+  },
+  emptyState: {
+    color: colors.textMuted,
   },
   grid: {
     flexDirection: 'row',
