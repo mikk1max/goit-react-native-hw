@@ -6,7 +6,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    // Metro resolves .native.tsx/.web.tsx at bundle time; tsc needs this to
+    // do the same for `import ... from '@/navigation/RootNavigator'` to resolve.
+    "moduleSuffixes": [".native", ".ios", ".android", ".web", ""]
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }
