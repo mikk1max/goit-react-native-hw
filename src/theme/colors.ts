@@ -5,6 +5,15 @@ export const colors = {
   primaryLight: '#B4DBFF',
   primaryLightest: '#EAF2FF',
 
+  /**
+   * From the Figma high-fidelity pass: the kit has no token for "something's
+   * wrong, act now" — blue already means "book calmly" everywhere else, so
+   * reusing it for the urgent-request module would blur that distinction.
+   * Scoped to that one module only.
+   */
+  urgent: '#FF5A3C',
+  urgentLight: '#FFE7E1',
+
   text: '#000000',
   textPrimary: '#1F2024',
   textSecondary: '#2F3036',

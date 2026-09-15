@@ -21,6 +21,12 @@ export type ButtonProps = {
   variant?: ButtonVariant;
   /** Ionicons glyph rendered before the label, e.g. "cart" for a "Buy" button. */
   icon?: IconName;
+  /**
+   * Overrides the brand blue — e.g. colors.urgent for the "Urgent request"
+   * module, where blue (this app's "book calmly" color everywhere else)
+   * would undercut the sense of urgency.
+   */
+  tintColor?: string;
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
@@ -31,12 +37,14 @@ export function Button({
   onPress,
   variant = 'primary',
   icon,
+  tintColor = colors.primary,
   disabled = false,
   loading = false,
   fullWidth = true,
 }: ButtonProps) {
   const isSecondary = variant === 'secondary';
   const isDisabled = disabled || loading;
+  const foregroundColor = isSecondary ? tintColor : colors.white;
 
   return (
     <Pressable
@@ -46,24 +54,20 @@ export function Button({
       disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
-        isSecondary ? styles.secondary : styles.primary,
+        isSecondary
+          ? [styles.secondary, { borderColor: tintColor }]
+          : [styles.primary, { backgroundColor: tintColor, shadowColor: tintColor }],
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
         pressed && !isDisabled && styles.pressed,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isSecondary ? colors.primary : colors.white} size="small" />
+        <ActivityIndicator color={foregroundColor} size="small" />
       ) : (
         <View style={styles.content}>
-          {icon ? (
-            <Ionicons name={icon} size={16} color={isSecondary ? colors.primary : colors.white} />
-          ) : null}
-          <Text
-            style={[typography.actionM, isSecondary ? styles.secondaryText : styles.primaryText]}
-          >
-            {title}
-          </Text>
+          {icon ? <Ionicons name={icon} size={16} color={foregroundColor} /> : null}
+          <Text style={[typography.actionM, { color: foregroundColor }]}>{title}</Text>
         </View>
       )}
     </Pressable>
@@ -87,11 +91,10 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
   },
   primary: {
-    backgroundColor: colors.primary,
-    // iOS shadow vs Android elevation, per Platform.select.
+    // iOS shadow vs Android elevation, per Platform.select. shadowColor is
+    // set inline per-instance (tintColor), the rest is constant.
     ...Platform.select({
       ios: {
-        shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
@@ -104,13 +107,6 @@ const styles = StyleSheet.create({
   secondary: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: colors.primary,
-  },
-  primaryText: {
-    color: colors.white,
-  },
-  secondaryText: {
-    color: colors.primary,
   },
   disabled: {
     opacity: 0.5,

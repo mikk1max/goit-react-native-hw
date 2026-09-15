@@ -38,9 +38,11 @@ export function HomeScreen() {
             placeholder="Search for a pro or service"
           />
 
+          {/* Coral accent, not the brand blue used everywhere else — blue reads
+              as "book calmly", this module means "something's wrong, act now". */}
           <View style={styles.urgentCard}>
             <View style={styles.urgentIcon}>
-              <Ionicons name="heart" size={20} color={colors.primary} />
+              <Ionicons name="heart" size={20} color={colors.urgent} />
             </View>
             <View style={styles.urgentText}>
               <Text style={[typography.h4, styles.urgentTitle]}>Urgent request</Text>
@@ -48,7 +50,12 @@ export function HomeScreen() {
                 A pro arrives in about 30 minutes
               </Text>
             </View>
-            <Button title="Book now" variant="secondary" fullWidth={false} />
+            <Button
+              title="Book now"
+              variant="secondary"
+              tintColor={colors.urgent}
+              fullWidth={false}
+            />
           </View>
 
           <CategoryList
@@ -66,6 +73,7 @@ export function HomeScreen() {
                   name={pro.name}
                   role={pro.role}
                   rating={pro.rating}
+                  imageUrl={pro.imageUrl}
                   onPress={() => navigation.navigate('ProDetails', { proId: pro.id })}
                 />
               </View>
@@ -95,7 +103,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.urgentLight,
     borderRadius: radii.md,
     padding: spacing.md,
   },
@@ -103,7 +111,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.pill,
-    backgroundColor: colors.surfaceMedium,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
