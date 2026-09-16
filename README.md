@@ -39,9 +39,9 @@ shots line up evenly in the same grid regardless of their source resolution.
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | <img src="screenshots/05-home-tablet.png" width="260" alt="Home tablet"> | <img src="screenshots/06-categories-tablet.png" width="260" alt="Categories tablet"> | <img src="screenshots/07-pro-details-tablet.png" width="260" alt="Pro details tablet"> |
 
-Home, landscape (wider than the grid above, so it gets more room):
+Home, landscape (wider than the grid above, so it gets the full width):
 
-<img src="screenshots/04-home-landscape.png" width="540" alt="Home landscape">
+<img src="screenshots/04-home-landscape.png" width="100%" alt="Home landscape">
 
 **Navigation** (Drawer menu, dynamic Pro profile, error handling — see
 "Navigation" below): swipe from the edge or tap ☰ to open the Drawer; Help
