@@ -39,21 +39,25 @@ shots line up evenly in the same grid regardless of their source resolution.
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | <img src="screenshots/05-home-tablet.png" width="260" alt="Home tablet"> | <img src="screenshots/06-categories-tablet.png" width="260" alt="Categories tablet"> | <img src="screenshots/07-pro-details-tablet.png" width="260" alt="Pro details tablet"> |
 
-| Home (landscape)                                                               |
-| ------------------------------------------------------------------------------ |
-| <img src="screenshots/04-home-landscape.png" width="260" alt="Home landscape"> |
+Home, landscape (wider than the grid above, so it gets more room):
+
+<img src="screenshots/04-home-landscape.png" width="540" alt="Home landscape">
 
 **Navigation** (Drawer menu, dynamic Pro profile, error handling — see
-"Navigation" below):
+"Navigation" below): swipe from the edge or tap ☰ to open the Drawer; Help
+& Support and Contact are Drawer-only screens with no tab bar of their own.
 
 | Drawer open                                                                         | Help & Support                                                                      | Contact us                                                                                |
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| swipe-from-edge or the ☰ button                                                    | a Drawer-only screen, no tab bar                                                    |                                                                                           |
 | <img src="screenshots/navigation/01-drawer-open.png" width="260" alt="Drawer open"> | <img src="screenshots/navigation/02-help-screen.png" width="260" alt="Help screen"> | <img src="screenshots/navigation/03-contact-screen.png" width="260" alt="Contact screen"> |
+
+Sign out is an honest placeholder (there's no account in this app); tapping
+a different pro shows that pro's own fetched About/Pricing/Reviews, not the
+previous one's; and an invalid `proId` renders an explicit error state
+instead of crashing:
 
 | Sign out                                                                                  | A different pro                                                                                           | Pro not found                                                                           |
 | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| an honest placeholder — no account in this app                                            | same screen, different `proId` — this pro's own fetched About/Pricing/Reviews, not the previous one's     | an invalid `proId` renders an explicit error state instead of crashing                  |
 | <img src="screenshots/navigation/04-sign-out-alert.png" width="260" alt="Sign out alert"> | <img src="screenshots/navigation/05-pro-details-anna.png" width="260" alt="Pro details, a different pro"> | <img src="screenshots/navigation/06-pro-not-found.png" width="260" alt="Pro not found"> |
 
 **Live API data** (a category's provider directory, fetched from a real
