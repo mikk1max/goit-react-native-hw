@@ -26,50 +26,51 @@ scheduled or urgent home-service booking.
 All taken on a real iOS 26 simulator build (`npm run ios`) — that's the
 actual native tab bar and Liquid Glass chrome below, not a web mockup.
 
-| Home                                      | Categories                                            | Pro profile                                             |
-| ----------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------- |
-| ![Home](screenshots/01-home-portrait.png) | ![Categories](screenshots/02-categories-portrait.png) | ![Pro profile](screenshots/03-pro-details-portrait.png) |
+All screenshots below render at a fixed 260px width, so phone and tablet
+shots line up evenly in the same grid regardless of their source resolution.
+
+| Home                                                                | Categories                                                                      | Pro profile                                                                       |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| <img src="screenshots/01-home-portrait.png" width="260" alt="Home"> | <img src="screenshots/02-categories-portrait.png" width="260" alt="Categories"> | <img src="screenshots/03-pro-details-portrait.png" width="260" alt="Pro profile"> |
 
 **Landscape / tablet** (content reflows into a 2-column grid past 600dp):
 
-Landscape:
-![Landscape](screenshots/04-home-landscape.png)
+| Home (tablet)                                                            | Categories (tablet)                                                                  | Pro profile (tablet)                                                                   |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| <img src="screenshots/05-home-tablet.png" width="260" alt="Home tablet"> | <img src="screenshots/06-categories-tablet.png" width="260" alt="Categories tablet"> | <img src="screenshots/07-pro-details-tablet.png" width="260" alt="Pro details tablet"> |
 
-| Tablet                                    | Categories (tablet)                                        |
-| ----------------------------------------- | ---------------------------------------------------------- |
-| ![Tablet](screenshots/05-home-tablet.png) | ![Categories tablet](screenshots/06-categories-tablet.png) |
-
-Pro profile (tablet):
-![Pro details tablet](screenshots/07-pro-details-tablet.png)
+| Home (landscape)                                                               |
+| ------------------------------------------------------------------------------ |
+| <img src="screenshots/04-home-landscape.png" width="260" alt="Home landscape"> |
 
 **Navigation** (Drawer menu, dynamic Pro profile, error handling — see
 "Navigation" below):
 
-| Drawer open                                               | Help & Support                                            | Contact us                                                      |
-| --------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------- |
-| swipe-from-edge or the ☰ button                          | a Drawer-only screen, no tab bar                          |                                                                 |
-| ![Drawer open](screenshots/navigation/01-drawer-open.png) | ![Help screen](screenshots/navigation/02-help-screen.png) | ![Contact screen](screenshots/navigation/03-contact-screen.png) |
+| Drawer open                                                                         | Help & Support                                                                      | Contact us                                                                                |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| swipe-from-edge or the ☰ button                                                    | a Drawer-only screen, no tab bar                                                    |                                                                                           |
+| <img src="screenshots/navigation/01-drawer-open.png" width="260" alt="Drawer open"> | <img src="screenshots/navigation/02-help-screen.png" width="260" alt="Help screen"> | <img src="screenshots/navigation/03-contact-screen.png" width="260" alt="Contact screen"> |
 
-| Sign out                                                        | A different pro                                                                                       | Pro not found                                                          |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| an honest placeholder — no account in this app                  | same screen, different `proId` — this pro's own fetched About/Pricing/Reviews, not the previous one's | an invalid `proId` renders an explicit error state instead of crashing |
-| ![Sign out alert](screenshots/navigation/04-sign-out-alert.png) | ![Pro details, a different pro](screenshots/navigation/05-pro-details-anna.png)                       | ![Pro not found](screenshots/navigation/06-pro-not-found.png)          |
+| Sign out                                                                                  | A different pro                                                                                           | Pro not found                                                                           |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| an honest placeholder — no account in this app                                            | same screen, different `proId` — this pro's own fetched About/Pricing/Reviews, not the previous one's     | an invalid `proId` renders an explicit error state instead of crashing                  |
+| <img src="screenshots/navigation/04-sign-out-alert.png" width="260" alt="Sign out alert"> | <img src="screenshots/navigation/05-pro-details-anna.png" width="260" alt="Pro details, a different pro"> | <img src="screenshots/navigation/06-pro-not-found.png" width="260" alt="Pro not found"> |
 
 **Live API data** (a category's provider directory, fetched from a real
 endpoint — see "Live data" below):
 
-| Category provider list (phone)                                  | Same list, 2-column on tablet                                                  |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| ![Category provider list](screenshots/api/01-category-list.png) | ![Category provider list, tablet](screenshots/api/03-category-list-tablet.png) |
+| Category provider list (phone)                                                            | Same list, 2-column on tablet                                                                            |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| <img src="screenshots/api/01-category-list.png" width="260" alt="Category provider list"> | <img src="screenshots/api/03-category-list-tablet.png" width="260" alt="Category provider list, tablet"> |
 
 Tapping a provider fetches that one record and shows the same
 About/Pricing/Availability/Reviews profile Home's Pro profile uses, and a
 failed request renders an explicit error with a retry button, not a blank
 screen or a crash:
 
-| Provider details                                             | API error state                                        |
-| ------------------------------------------------------------ | ------------------------------------------------------ |
-| ![Provider details](screenshots/api/02-provider-details.png) | ![API error state](screenshots/api/04-error-state.png) |
+| Provider details                                                                       | API error state                                                                  |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| <img src="screenshots/api/02-provider-details.png" width="260" alt="Provider details"> | <img src="screenshots/api/04-error-state.png" width="260" alt="API error state"> |
 
 ## Components
 
