@@ -5,8 +5,10 @@ reusable React Native components with Expo + TypeScript. Cross-discipline
 assignment 4 layered real navigation on top: a Drawer wrapping the tab bar,
 and screens that actually pass and validate data between each other instead
 of always showing the same hardcoded pro. Cross-discipline assignment 5 adds
-a live API-backed screen — Categories now leads to a real fetched provider
-directory instead of a dead end.
+a live API-backed directory: Home's Recommended pros and Categories' provider
+lists both fetch real records over HTTPS, and tapping into either one shows
+that person's own About/Pricing/Availability/Reviews profile — nothing here
+reads from a hardcoded local list anymore.
 
 FixIt is a mobile app that connects users with trusted local pros —
 plumber, electrician, cleaner, painter, carpenter, gardener — for a
@@ -58,8 +60,9 @@ Sign out (an honest placeholder — there's no account in this app):
 ![Sign out alert](screenshots/navigation/04-sign-out-alert.png)
 
 Pro profile for a different pro, reached via the same screen with a
-different `proId` — the About/Pricing/Reviews are Anna's own, not Marek's:
-![Pro details, Anna Kowalska](screenshots/navigation/05-pro-details-anna.png)
+different `proId` — the About/Pricing/Reviews are this pro's own fetched
+record, not the previous one's:
+![Pro details, a different pro](screenshots/navigation/05-pro-details-anna.png)
 
 An invalid `proId` renders an explicit error state instead of crashing:
 ![Pro not found](screenshots/navigation/06-pro-not-found.png)
@@ -73,7 +76,8 @@ A category's fetched provider list (phone):
 The same list, 2-column on tablet:
 ![Category provider list, tablet](screenshots/api/03-category-list-tablet.png)
 
-Tapping a provider fetches and shows that one record's own detail:
+Tapping a provider fetches that one record and shows the same
+About/Pricing/Availability/Reviews profile Home's Pro profile uses:
 ![Provider details](screenshots/api/02-provider-details.png)
 
 The request failing renders an explicit error with a retry button, not a
@@ -110,9 +114,9 @@ Some notes on a few less obvious decisions:
   (`colors.urgent` / `urgentLight`, `#FF5A3C` / `#FFE7E1`) instead of the
   brand blue used everywhere else — blue means "book calmly" throughout the
   rest of the app, so it shouldn't also mean "a pro arrives in 30 minutes."
-- **Avatars use real (placeholder) photos**, not just an icon — `mockData.ts`
-  points each pro/reviewer at a small illustrated avatar so `Image` actually
-  renders content, not just a fallback glyph.
+- **Avatars use real photos**, not just an icon — every pro and reviewer
+  comes from `src/api/providers.ts` with a real randomuser.me headshot, so
+  `Image` actually renders content, not just a fallback glyph.
 - **Category icons are real vector pictograms**, not a generic icon-font
   glyph reused six times — `TradeIcon` draws the actual plumbing/electrical/
   cleaning/painting/carpentry/gardening shapes from the Figma file, so each
@@ -164,10 +168,10 @@ Three navigators, nested Drawer → Tab → Stack, each in its own file under
   a single provider's own profile. See "Live data" below.
 
 **Passing data between screens:** `ProDetailsScreen` reads `route.params.proId`
-and looks the pro up in `recommendedPros` — it no longer just always renders
-Marek Nowak. If `proId` is missing (a screen reached with no params) or
-doesn't match any pro (a stale id), the screen renders an explicit "Pro not
-found" state with a way back, instead of crashing on `pro.name`.
+and fetches that one provider by id — it no longer just always renders Marek
+Nowak. If `proId` is missing (a screen reached with no params) or doesn't
+match any provider (a stale id), the screen renders an explicit error state
+with a "Try again" button, instead of crashing on `pro.name`.
 
 **Screen names are constants**, not scattered string literals — every
 navigator and every `navigate()` call reads from `SCREENS` in
@@ -190,9 +194,13 @@ a Remote Function" error under 2.32.0. Bumping to 3.x fixed it outright.
 
 ## Live data
 
-Tapping a category no longer does nothing — `CategoryDetailsScreen` fetches
-and lists real records over HTTPS, and `ProviderDetailsScreen` fetches one
-record's own detail when you tap into it.
+Both provider-facing screens are API-backed now, not just Categories': Home's
+"Recommended pros" fetches the same directory Categories filters, and tapping
+into a pro from either place — `ProDetailsScreen` (Home) or
+`ProviderDetailsScreen` (Categories) — fetches that one record and renders it
+through one shared `ProviderProfile` component, so both show the identical
+About/Pricing/Availability/Reviews layout assignment 3/4 originally built
+against local mock data.
 
 - **`src/api/providers.ts`** — the only file that calls `fetch()`, per the
   assignment's "keep request logic in its own file" requirement. FixIt has
@@ -200,39 +208,57 @@ record's own detail when you tap into it.
   integrate against, so this hits
   [randomuser.me](https://randomuser.me), a free, no-key, HTTPS API built
   for exactly this kind of placeholder-person data — real-looking headshots
-  and realistic names/contact/location fields — behind a
-  `fetchProvidersByCategory(categoryId)` (list) and `fetchProviderById(id)`
-  (single record) pair sharing one `getProviders()` helper. `API_URL` is a
+  and realistic names/location fields — behind `fetchProviders()` (the full
+  directory, for Home), `fetchProvidersByCategory(categoryId)` (filtered, for
+  Categories), and `fetchProviderById(id)` (a single record, for either
+  detail screen), all sharing one `getProviders()` helper. `API_URL` is a
   constant, not inlined at every call site, and pins a fixed `seed` so the
   directory doesn't reshuffle on every reload.
 - **Real GET requests, not axios** — plain `fetch`, matching the assignment's
   own example code; no reason to add a dependency for one endpoint.
-- **State via `useState`**, one variable each for the data, `loading`, and
-  `error` — no `useReducer`; three independent booleans/values don't need a
-  reducer's ceremony.
-- **`FlatList`**, not a mapped `View` (unlike Home's local `recommendedPros`
-  grid) — `renderItem` renders the existing `ProCard` component, `numColumns`
-  reflows to 2 columns on tablets the same way the rest of the app does, and
-  `keyExtractor` is `item => item.id` (randomuser.me's `login.uuid`).
+- **`useAsyncData` (`src/hooks/useAsyncData.ts`)** — the fetch/`loading`/
+  `error`/`retry` plumbing all four screens need, in one place instead of
+  copy-pasted four times. Callers pass their own `useCallback`'d fetcher (so
+  it only re-runs when e.g. an id from route params actually changes); the
+  hook itself still uses plain `useState` internally — three independent
+  values don't need `useReducer`'s ceremony.
+- **A `View`-mapped grid on Home, `FlatList` on Categories** — Home's grid
+  predates assignment 5 and still reflows into 2 columns via
+  `useResponsiveLayout` the same way; `CategoryDetailsScreen`'s `FlatList`
+  additionally sets `numColumns` directly and uses `keyExtractor: item =>
+item.id` (randomuser.me's `login.uuid`).
 - **Loading and errors are real states, not afterthoughts** — an
-  `ActivityIndicator` while the request is in flight, and network failures
+  `ActivityIndicator` while a request is in flight, and network failures
   (DNS, no connection) and non-2xx responses both render as an explicit
   message with a "Try again" button, never a blank screen.
-- **Navigation stays wired the same way as assignment 4** — tapping a
-  provider pushes `ProviderDetails` with `{ providerId: item.id }`, which
-  re-fetches by id rather than reusing the list response, the pattern a real
-  per-record detail endpoint would need.
+- **Navigation stays wired the same way as assignment 4** — tapping a pro
+  pushes its detail screen with `{ proId: item.id }` / `{ providerId: item.id
+}`, which re-fetches by id rather than reusing the list response, the
+  pattern a real per-record detail endpoint would need.
+- **"Recommended" means top-rated** — Home filters the fetched directory down
+  to providers rated 4.8★ and above (`RECOMMENDED_MIN_RATING` in
+  `HomeScreen.tsx`), on top of the existing category-tag and search filters.
 - **Honest about the API's limits:** randomuser.me is a person generator, not
-  a directory of tradespeople — it has no category or job field at all, so
-  each fetched person is assigned one of FixIt's 6 trade categories by their
-  position in the (seeded, so stable) results array, round-robin. That's
-  what makes the category filter genuinely different per category rather
-  than cosmetic, but the "About" text is FixIt's own sentence built from the
-  person's real age/city, not an API-provided bio. Likewise, randomuser.me
-  has no per-record GET endpoint, so `fetchProviderById` re-issues the same
-  seeded request and finds that one record client-side instead of hitting a
-  true `/providers/:id` route — still a real, independent network round trip
-  with its own loading/error state, just not a dedicated endpoint.
+  a directory of tradespeople — it has no category, job, rating, pricing, or
+  review data at all, so all of that is FixIt's own, derived from the fetched
+  data rather than invented independently of it:
+  - each fetched person is assigned one of FixIt's 6 trade categories by
+    their position in the (seeded, so stable) results array, round-robin —
+    what makes the category filter genuinely different per category rather
+    than cosmetic;
+  - "About" is FixIt's own sentence built from the person's real age/city;
+  - "Pricing" is a flat per-trade rate card, the same idea as the original
+    mock data's hand-picked figures;
+  - each "review" borrows two _other_ people from the same fetched batch as
+    reviewers — their real name/photo, paired with one of two
+    category-appropriate comments;
+  - rating is a stable hash of the person's own uuid (4.3–5.0), so it's the
+    same number on every reload instead of changing randomly.
+    Likewise, randomuser.me has no per-record GET endpoint, so
+    `fetchProviderById` re-issues the same seeded request and finds that one
+    record client-side instead of hitting a true `/providers/:id` route —
+    still a real, independent network round trip with its own loading/error
+    state, just not a dedicated endpoint.
 
 ## Liquid Glass
 
@@ -268,15 +294,17 @@ src/
   theme/        colors, typography, spacing, shadows
   components/    Avatar/ Button/ Tag/ StarRating/ Header/
                  SearchBar/ ListItem/ ProCard/ CategoryList/ GlassSurface/
-                 TradeIcon/
-  hooks/         useResponsiveLayout.ts
+                 TradeIcon/ ProviderProfile/
+  hooks/         useResponsiveLayout.ts, useAsyncData.ts
   navigation/    RootNavigator (Drawer), MainTabs (native/web), screens.ts,
-                 DrawerContent, tab bar height/icon helpers
+                 DrawerContent, DrawerSwipeContext, tab bar height/icon helpers
   screens/       HomeScreen, CategoriesScreen, ProDetailsScreen,
                  CategoryDetailsScreen, ProviderDetailsScreen,
                  HelpScreen, ContactScreen, PlaceholderScreen
-  data/          mockData.ts — local mock data (Home's pros)
-  api/           providers.ts — live randomuser.me-backed data (Categories' pros)
+  data/          mockData.ts — categories, the Availability week, and the
+                 PricingItem/Review types the API layer reuses
+  api/           providers.ts — live randomuser.me-backed data (Home's
+                 Recommended pros and Categories' provider directory)
 screenshots/
 ```
 
@@ -288,6 +316,6 @@ Out of scope for this assignment:
 - A real Bookings/Messages/Profile — those tabs are placeholders
   (`PlaceholderScreen`), and Profile's own tabs (order history, settings)
   from the assignment brief's example aren't built
-- Home's `recommendedPros` still reads local mock data, not the API — only
-  Categories' provider directory is API-backed (assignment 5's own scope)
+- "Book appointment" doesn't do anything yet — no booking flow exists to
+  submit to
 - Tests, form validation for the booking flow

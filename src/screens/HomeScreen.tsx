@@ -3,20 +3,25 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DrawerActions } from '@react-navigation/routers';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { fetchProviders } from '@/api/providers';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { CategoryList } from '@/components/CategoryList';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
-import { categories, recommendedPros } from '@/data/mockData';
+import { categories } from '@/data/mockData';
+import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SCREENS } from '@/navigation/screens';
 import type { HomeStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, radii, spacing, typography } from '@/theme';
+
+/** "Recommended" means top-rated — anything below this doesn't make the cut. */
+const RECOMMENDED_MIN_RATING = 4.8;
 
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
@@ -26,14 +31,17 @@ export function HomeScreen() {
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
+  const { data: pros = [], loading, error, retry } = useAsyncData(fetchProviders);
+
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredPros = recommendedPros.filter((pro) => {
+  const filteredPros = pros.filter((pro) => {
+    const isRecommended = pro.rating >= RECOMMENDED_MIN_RATING;
     const matchesCategory = !selectedCategoryId || pro.categoryId === selectedCategoryId;
     const matchesQuery =
       !normalizedQuery ||
       pro.name.toLowerCase().includes(normalizedQuery) ||
       pro.role.toLowerCase().includes(normalizedQuery);
-    return matchesCategory && matchesQuery;
+    return isRecommended && matchesCategory && matchesQuery;
   });
 
   return (
@@ -74,7 +82,14 @@ export function HomeScreen() {
 
           <Text style={[typography.sectionTitle, styles.sectionTitle]}>Recommended pros</Text>
 
-          {filteredPros.length === 0 ? (
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.primary} style={styles.sectionState} />
+          ) : error ? (
+            <View style={styles.sectionState}>
+              <Text style={[typography.bodyM, styles.errorText]}>{error}</Text>
+              <Button title="Try again" onPress={retry} fullWidth={false} />
+            </View>
+          ) : filteredPros.length === 0 ? (
             <Text style={[typography.bodyM, styles.emptyState]}>
               No pros match your search yet.
             </Text>
@@ -148,6 +163,15 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     color: colors.textMuted,
+  },
+  sectionState: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+  },
+  errorText: {
+    color: colors.textMuted,
+    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',

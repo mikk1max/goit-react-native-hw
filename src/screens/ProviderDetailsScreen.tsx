@@ -1,15 +1,13 @@
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { fetchProviderById } from '@/api/providers';
-import type { ApiProvider } from '@/api/providers';
-import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
-import { ListItem } from '@/components/ListItem';
-import { Tag } from '@/components/Tag';
+import { ProviderProfile } from '@/components/ProviderProfile';
+import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { CategoriesStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
@@ -24,6 +22,8 @@ type ProviderDetailsRoute = RouteProp<CategoriesStackParamList, 'ProviderDetails
  * randomuser.me doesn't have one (it's a generator, not a database), so
  * fetchProviderById re-issues the same seeded request and finds the record
  * client-side — see the comment on that function in api/providers.ts.
+ * Renders through ProviderProfile, the same About/Pricing/Availability/
+ * Reviews layout Home's Pro profile uses for the same shape of data.
  */
 export function ProviderDetailsScreen() {
   const navigation = useNavigation();
@@ -33,33 +33,8 @@ export function ProviderDetailsScreen() {
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
 
-  const [provider, setProvider] = useState<ApiProvider | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // No synchronous setState here — see the matching comment on
-  // CategoryDetailsScreen's load().
-  const load = useCallback(() => {
-    fetchProviderById(providerId)
-      .then((data) => {
-        setProvider(data);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'Something went wrong.');
-      })
-      .finally(() => setLoading(false));
-  }, [providerId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const retry = () => {
-    setLoading(true);
-    setError(null);
-    load();
-  };
+  const fetchThis = useCallback(() => fetchProviderById(providerId), [providerId]);
+  const { data: provider, loading, error, retry } = useAsyncData(fetchThis);
 
   if (loading || error || !provider) {
     return (
@@ -83,33 +58,18 @@ export function ProviderDetailsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomClearance + spacing.xl },
-        ]}
-      >
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
-          <View style={styles.profileHeader}>
-            <Avatar size="lg" imageUrl={provider.imageUrl} />
-            <Text style={[typography.h1, styles.name]}>{provider.name}</Text>
-            <Tag label={provider.role} />
-          </View>
-
-          <Text style={typography.sectionTitle}>About</Text>
-          <Text style={[typography.bodyM, styles.about]}>{provider.about}</Text>
-
-          <Text style={typography.sectionTitle}>Contact</Text>
-          <View style={styles.list}>
-            <ListItem title={provider.email} subtitle="Email" />
-            <ListItem title={provider.phone} subtitle="Phone" />
-            <ListItem title={provider.cell} subtitle="Mobile" />
-          </View>
-
-          <Text style={typography.sectionTitle}>Address</Text>
-          <ListItem title={provider.address} subtitle="Address" />
+          <ProviderProfile provider={provider} />
         </View>
       </ScrollView>
+
+      {/* Sits outside the ScrollView, so it doesn't get the tab bar's automatic
+          content-inset — needs its own clearance or it renders unreachable
+          underneath the floating/translucent tab bar. */}
+      <View style={[styles.footer, { paddingBottom: bottomClearance + spacing.md }]}>
+        <Button title="Book appointment" />
+      </View>
 
       <Header title="Provider profile" onBackPress={() => navigation.goBack()} />
     </View>
@@ -121,6 +81,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  scroll: {
+    flex: 1,
+    // Web flexbox won't let a flex child shrink below its content's natural
+    // height unless minHeight is reset — without this the ScrollView grows
+    // past the footer instead of scrolling internally.
+    minHeight: 0,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingBottom: spacing.xl,
+  },
+  content: {
+    gap: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  footer: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -131,25 +110,5 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.textMuted,
     textAlign: 'center',
-  },
-  scrollContent: {
-    alignItems: 'center',
-  },
-  content: {
-    gap: spacing.lg,
-    paddingHorizontal: spacing.md,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  name: {
-    color: colors.text,
-  },
-  about: {
-    color: colors.text,
-  },
-  list: {
-    gap: spacing.xxs,
   },
 });

@@ -1,14 +1,14 @@
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { fetchProvidersByCategory } from '@/api/providers';
-import type { ApiProvider } from '@/api/providers';
 import { Button } from '@/components/Button';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
+import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SCREENS } from '@/navigation/screens';
 import type { CategoriesStackParamList } from '@/navigation/types';
@@ -20,11 +20,11 @@ type CategoriesStackNav = NativeStackNavigationProp<CategoriesStackParamList>;
 
 /**
  * The provider directory for one category — reached from CategoriesScreen,
- * fetched live instead of read from local mock data (unlike Home's
- * recommendedPros). randomuser.me has no category concept at all, so
- * fetchProvidersByCategory assigns + filters client-side (see api/providers.ts) —
- * a real backend would do this filtering itself, but the result here is a
- * genuinely different directory per category, not the same list relabeled.
+ * fetched live the same way as Home's Recommended pros. randomuser.me has
+ * no category concept at all, so fetchProvidersByCategory assigns + filters
+ * client-side (see api/providers.ts) — a real backend would do this
+ * filtering itself, but the result here is a genuinely different directory
+ * per category, not the same list relabeled.
  */
 export function CategoryDetailsScreen() {
   const navigation = useNavigation<CategoriesStackNav>();
@@ -34,35 +34,8 @@ export function CategoryDetailsScreen() {
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
 
-  const [providers, setProviders] = useState<ApiProvider[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // No synchronous setState here — every state update happens inside the
-  // promise callbacks, once the fetch actually settles, not immediately when
-  // the effect runs. "Try again" resets loading/error itself before calling
-  // this, since that happens in a Pressable's onPress, not an effect body.
-  const load = useCallback(() => {
-    fetchProvidersByCategory(categoryId)
-      .then((data) => {
-        setProviders(data);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'Something went wrong.');
-      })
-      .finally(() => setLoading(false));
-  }, [categoryId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const retry = () => {
-    setLoading(true);
-    setError(null);
-    load();
-  };
+  const fetchThis = useCallback(() => fetchProvidersByCategory(categoryId), [categoryId]);
+  const { data: providers = [], loading, error, retry } = useAsyncData(fetchThis);
 
   return (
     <View style={styles.screen}>
@@ -103,6 +76,7 @@ export function CategoryDetailsScreen() {
               <ProCard
                 name={item.name}
                 role={item.role}
+                rating={item.rating}
                 imageUrl={item.imageUrl}
                 onPress={() =>
                   navigation.navigate(SCREENS.PROVIDER_DETAILS, { providerId: item.id })
