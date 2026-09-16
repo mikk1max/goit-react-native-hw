@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import { DrawerActions } from '@react-navigation/routers';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -11,6 +13,7 @@ import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, spacing, typography } from '@/theme';
 
 export function CategoriesScreen() {
+  const navigation = useNavigation();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
@@ -54,7 +57,10 @@ export function CategoriesScreen() {
         </View>
       </ScrollView>
 
-      <Header title="Categories" />
+      <Header
+        title="Categories"
+        onMenuPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+      />
     </View>
   );
 }

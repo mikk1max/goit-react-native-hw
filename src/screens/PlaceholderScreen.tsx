@@ -10,13 +10,14 @@ type IconName = ComponentProps<typeof Ionicons>['name'];
 export type PlaceholderScreenProps = {
   title: string;
   icon: IconName;
+  onMenuPress?: () => void;
 };
 
 /** Stand-in for tabs outside this assignment's scope (Messages, Profile). */
-export function PlaceholderScreen({ title, icon }: PlaceholderScreenProps) {
+export function PlaceholderScreen({ title, icon, onMenuPress }: PlaceholderScreenProps) {
   return (
     <View style={styles.screen}>
-      <Header title={title} />
+      <Header title={title} onMenuPress={onMenuPress} />
       <View style={styles.body}>
         <Ionicons name={icon} size={40} color={colors.textPlaceholder} />
         <Text style={[typography.bodyM, styles.text]}>Coming soon</Text>

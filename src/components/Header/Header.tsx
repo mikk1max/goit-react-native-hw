@@ -12,6 +12,13 @@ export type HeaderProps = {
   /** Renders a back chevron on the left and calls this when tapped. */
   onBackPress?: () => void;
   /**
+   * Renders a hamburger icon on the left and calls this when tapped — for
+   * root tab screens, which have nothing to go back to but do sit inside
+   * the Drawer. Ignored when onBackPress is also given (mutually exclusive:
+   * a screen either has something to go back to, or opens the Drawer).
+   */
+  onMenuPress?: () => void;
+  /**
    * Custom right-side slot — an Avatar, or a future icon button. A button
    * placed here should wrap itself in its own <GlassSurface>, same as the
    * back button, to match — this slot doesn't force any styling of its own.
@@ -35,7 +42,7 @@ export function useFloatingHeaderClearance() {
  * Matches Slack's nav bar: a back chevron, a title, and a huddle button all
  * float as their own elements over the same content, side by side.
  */
-export function Header({ title, onBackPress, rightElement }: HeaderProps) {
+export function Header({ title, onBackPress, onMenuPress, rightElement }: HeaderProps) {
   const insets = useSafeAreaInsets();
   const { topClearance } = useTabBarLayout();
 
@@ -55,6 +62,17 @@ export function Header({ title, onBackPress, rightElement }: HeaderProps) {
             >
               <GlassSurface style={styles.backButton} isInteractive>
                 <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+              </GlassSurface>
+            </Pressable>
+          ) : onMenuPress ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open menu"
+              hitSlop={8}
+              onPress={onMenuPress}
+            >
+              <GlassSurface style={styles.backButton} isInteractive>
+                <Ionicons name="menu" size={18} color={colors.textPrimary} />
               </GlassSurface>
             </Pressable>
           ) : null}

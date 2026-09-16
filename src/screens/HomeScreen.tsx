@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { DrawerActions } from '@react-navigation/routers';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -12,6 +13,7 @@ import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
 import { categories, recommendedPros } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { SCREENS } from '@/navigation/screens';
 import type { HomeStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, radii, spacing, typography } from '@/theme';
@@ -85,7 +87,7 @@ export function HomeScreen() {
                     role={pro.role}
                     rating={pro.rating}
                     imageUrl={pro.imageUrl}
-                    onPress={() => navigation.navigate('ProDetails', { proId: pro.id })}
+                    onPress={() => navigation.navigate(SCREENS.PRO_DETAILS, { proId: pro.id })}
                   />
                 </View>
               ))}
@@ -94,7 +96,11 @@ export function HomeScreen() {
         </View>
       </ScrollView>
 
-      <Header title="FixIt" rightElement={<Avatar />} />
+      <Header
+        title="FixIt"
+        onMenuPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+        rightElement={<Avatar />}
+      />
     </View>
   );
 }
