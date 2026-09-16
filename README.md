@@ -35,11 +35,9 @@ actual native tab bar and Liquid Glass chrome below, not a web mockup.
 Landscape:
 ![Landscape](screenshots/04-home-landscape.png)
 
-Tablet:
-![Tablet](screenshots/05-home-tablet.png)
-
-Categories (tablet):
-![Categories tablet](screenshots/06-categories-tablet.png)
+| Tablet                                    | Categories (tablet)                                        |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| ![Tablet](screenshots/05-home-tablet.png) | ![Categories tablet](screenshots/06-categories-tablet.png) |
 
 Pro profile (tablet):
 ![Pro details tablet](screenshots/07-pro-details-tablet.png)
@@ -47,42 +45,31 @@ Pro profile (tablet):
 **Navigation** (Drawer menu, dynamic Pro profile, error handling — see
 "Navigation" below):
 
-Drawer open (swipe-from-edge or the ☰ button):
-![Drawer open](screenshots/navigation/01-drawer-open.png)
+| Drawer open                                               | Help & Support                                            | Contact us                                                      |
+| --------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------- |
+| swipe-from-edge or the ☰ button                          | a Drawer-only screen, no tab bar                          |                                                                 |
+| ![Drawer open](screenshots/navigation/01-drawer-open.png) | ![Help screen](screenshots/navigation/02-help-screen.png) | ![Contact screen](screenshots/navigation/03-contact-screen.png) |
 
-Help & Support (a Drawer-only screen, no tab bar):
-![Help screen](screenshots/navigation/02-help-screen.png)
-
-Contact us:
-![Contact screen](screenshots/navigation/03-contact-screen.png)
-
-Sign out (an honest placeholder — there's no account in this app):
-![Sign out alert](screenshots/navigation/04-sign-out-alert.png)
-
-Pro profile for a different pro, reached via the same screen with a
-different `proId` — the About/Pricing/Reviews are this pro's own fetched
-record, not the previous one's:
-![Pro details, a different pro](screenshots/navigation/05-pro-details-anna.png)
-
-An invalid `proId` renders an explicit error state instead of crashing:
-![Pro not found](screenshots/navigation/06-pro-not-found.png)
+| Sign out                                                        | A different pro                                                                                       | Pro not found                                                          |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| an honest placeholder — no account in this app                  | same screen, different `proId` — this pro's own fetched About/Pricing/Reviews, not the previous one's | an invalid `proId` renders an explicit error state instead of crashing |
+| ![Sign out alert](screenshots/navigation/04-sign-out-alert.png) | ![Pro details, a different pro](screenshots/navigation/05-pro-details-anna.png)                       | ![Pro not found](screenshots/navigation/06-pro-not-found.png)          |
 
 **Live API data** (a category's provider directory, fetched from a real
 endpoint — see "Live data" below):
 
-A category's fetched provider list (phone):
-![Category provider list](screenshots/api/01-category-list.png)
-
-The same list, 2-column on tablet:
-![Category provider list, tablet](screenshots/api/03-category-list-tablet.png)
+| Category provider list (phone)                                  | Same list, 2-column on tablet                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| ![Category provider list](screenshots/api/01-category-list.png) | ![Category provider list, tablet](screenshots/api/03-category-list-tablet.png) |
 
 Tapping a provider fetches that one record and shows the same
-About/Pricing/Availability/Reviews profile Home's Pro profile uses:
-![Provider details](screenshots/api/02-provider-details.png)
+About/Pricing/Availability/Reviews profile Home's Pro profile uses, and a
+failed request renders an explicit error with a retry button, not a blank
+screen or a crash:
 
-The request failing renders an explicit error with a retry button, not a
-blank screen or a crash:
-![API error state](screenshots/api/04-error-state.png)
+| Provider details                                             | API error state                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------ |
+| ![Provider details](screenshots/api/02-provider-details.png) | ![API error state](screenshots/api/04-error-state.png) |
 
 ## Components
 
