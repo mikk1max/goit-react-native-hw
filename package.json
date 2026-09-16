@@ -54,7 +54,9 @@
   "private": true,
   "expo": {
     "install": {
-      "exclude": ["react-native-gesture-handler"]
+      "exclude": [
+        "react-native-gesture-handler"
+      ]
     }
   }
 }
