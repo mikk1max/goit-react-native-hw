@@ -177,13 +177,16 @@ with a "Try again" button, instead of crashing on `pro.name`.
 navigator and every `navigate()` call reads from `SCREENS` in
 `src/navigation/screens.ts`.
 
-**Gestures:** the Drawer's swipe-from-edge-to-open works everywhere, and
-swipe-to-close works while it's open. On Pro profile specifically, that same
-left edge is also where native-stack's own swipe-back gesture lives; the
-Drawer currently wins that conflict, so Pro profile's reliable "go back" is
-its Header's back button rather than an edge swipe (see the comment on
-`RootNavigator.tsx`'s `Main` screen for why the usual fix — disabling the
-Drawer's swipe while a nested screen is focused — doesn't take effect here).
+**Gestures:** the Drawer's swipe-from-edge-to-open works on every root tab
+screen (Home, Search, Bookings, Messages, Profile), and swipe-to-close works
+while it's open. Screens with a back button (Pro profile, Provider profile,
+Category details, Help, Contact) share that same left edge with
+native-stack's own swipe-back gesture — with both enabled at once they fight
+over the touch, so which one "won" depended on luck. `Header` now declares
+which gesture should be active for the screen it's rendering through a small
+context (`DrawerSwipeContext`, set from `RootNavigator`): a back button turns
+the Drawer's swipe off, the hamburger menu turns it back on — since every
+screen already has exactly one of the two, never both.
 
 **Dependency note:** `react-native-gesture-handler` is pinned to `^3.3.0`
 instead of Expo SDK 57's default `~2.32.0` (see `expo.install.exclude` in

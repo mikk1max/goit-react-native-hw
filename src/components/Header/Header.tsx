@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import type { ReactNode } from 'react';
+import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/GlassSurface';
+import { useSetDrawerSwipeEnabled } from '@/navigation/DrawerSwipeContext';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, radii, shadows, spacing, typography } from '@/theme';
 
@@ -45,6 +48,18 @@ export function useFloatingHeaderClearance() {
 export function Header({ title, onBackPress, onMenuPress, rightElement }: HeaderProps) {
   const insets = useSafeAreaInsets();
   const { topClearance } = useTabBarLayout();
+  const setDrawerSwipeEnabled = useSetDrawerSwipeEnabled();
+
+  // A back button means native-stack's own swipe-back gesture lives on this
+  // screen's left edge too — sharing it with the Drawer's swipe-to-open
+  // otherwise made "swipe from the edge" go back or open the Drawer
+  // depending on which gesture handler happened to win the race. Only one
+  // of the two ever makes sense per screen (see DrawerSwipeContext.tsx).
+  useFocusEffect(
+    useCallback(() => {
+      setDrawerSwipeEnabled(!onBackPress);
+    }, [setDrawerSwipeEnabled, onBackPress]),
+  );
 
   return (
     <View
