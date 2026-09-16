@@ -2,19 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { SCREENS } from './screens';
+
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 /** The rasterized `{uri, width, height, scale}` Ionicons.getImageSource resolves to. */
 export type ResolvedTabIcon = NonNullable<Awaited<ReturnType<typeof Ionicons.getImageSource>>>;
 
 const ICON_SIZE = 24;
 
-/** Keyed the same as RootNavigator's tab route names. */
+/** Keyed the same as MainTabs' tab route names. */
 export const TAB_ANDROID_ICON_NAMES: Record<string, IconName> = {
-  Home: 'home',
-  Categories: 'search',
-  Bookings: 'calendar',
-  Messages: 'chatbubble',
-  Profile: 'person',
+  [SCREENS.HOME]: 'home',
+  [SCREENS.CATEGORIES]: 'search',
+  [SCREENS.BOOKINGS]: 'calendar',
+  [SCREENS.MESSAGES]: 'chatbubble',
+  [SCREENS.PROFILE]: 'person',
 };
 
 /**

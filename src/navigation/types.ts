@@ -12,3 +12,10 @@ export type RootTabParamList = {
   Messages: undefined;
   Profile: undefined;
 };
+
+/** The side Drawer wrapping the whole tab bar — Main is the 5-tab app, Help/Contact are drawer-only screens. */
+export type RootDrawerParamList = {
+  Main: undefined;
+  Help: undefined;
+  Contact: undefined;
+};
