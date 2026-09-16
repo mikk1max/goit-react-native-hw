@@ -12,9 +12,7 @@ import { Tag } from '@/components/Tag';
 import { WeeklyCalendar } from '@/components/WeeklyCalendar';
 import { currentWeek, pricingList, recommendedPros, reviews } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-// Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
-// eslint-disable-next-line import/no-unresolved
-import { useTabBarHeight } from '@/navigation/useTabBarHeight';
+import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, spacing, typography } from '@/theme';
 
 export function ProDetailsScreen() {
@@ -22,7 +20,7 @@ export function ProDetailsScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   // Only ever reached by pushing from Home, so there's always a screen to go back to.
-  const tabBarHeight = useTabBarHeight();
+  const { bottomClearance } = useTabBarLayout();
   const [week] = useState(currentWeek);
   const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
 
@@ -80,7 +78,7 @@ export function ProDetailsScreen() {
       {/* Sits outside the ScrollView, so it doesn't get the tab bar's automatic
           content-inset — needs its own clearance or it renders unreachable
           underneath the floating/translucent tab bar. */}
-      <View style={[styles.footer, { paddingBottom: tabBarHeight + spacing.md }]}>
+      <View style={[styles.footer, { paddingBottom: bottomClearance + spacing.md }]}>
         <Button title="Book appointment" />
       </View>
 

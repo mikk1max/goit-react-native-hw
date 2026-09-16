@@ -13,16 +13,14 @@ import { SearchBar } from '@/components/SearchBar';
 import { categories, recommendedPros } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { HomeStackParamList } from '@/navigation/types';
-// Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
-// eslint-disable-next-line import/no-unresolved
-import { useTabBarHeight } from '@/navigation/useTabBarHeight';
+import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, radii, spacing, typography } from '@/theme';
 
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
-  const tabBarHeight = useTabBarHeight();
+  const { bottomClearance } = useTabBarLayout();
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
@@ -39,7 +37,10 @@ export function HomeScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomClearance + spacing.xl },
+        ]}
       >
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <SearchBar

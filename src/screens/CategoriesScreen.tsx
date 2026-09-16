@@ -7,15 +7,13 @@ import { SearchBar } from '@/components/SearchBar';
 import { TradeIcon } from '@/components/TradeIcon';
 import { categories } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-// Metro/tsc resolve useTabBarHeight.native.ts/.web.ts fine (see App.tsx's RootNavigator import).
-// eslint-disable-next-line import/no-unresolved
-import { useTabBarHeight } from '@/navigation/useTabBarHeight';
+import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, spacing, typography } from '@/theme';
 
 export function CategoriesScreen() {
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
-  const tabBarHeight = useTabBarHeight();
+  const { bottomClearance } = useTabBarLayout();
   const [query, setQuery] = useState('');
   const normalizedQuery = query.trim().toLowerCase();
   const filteredCategories = categories.filter((category) =>
@@ -25,7 +23,10 @@ export function CategoriesScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomClearance + spacing.xl },
+        ]}
       >
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <SearchBar value={query} onChangeText={setQuery} placeholder="Search categories" />

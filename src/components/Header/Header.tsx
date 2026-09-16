@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/GlassSurface';
+import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, radii, shadows, spacing, typography } from '@/theme';
 
 export type HeaderProps = {
@@ -24,7 +25,8 @@ const TOP_OFFSET = spacing.sm;
 /** How much top padding a screen needs so content doesn't scroll under the floating header. */
 export function useFloatingHeaderClearance() {
   const insets = useSafeAreaInsets();
-  return insets.top + TOP_OFFSET + PIECE_HEIGHT + spacing.sm;
+  const { topClearance } = useTabBarLayout();
+  return insets.top + topClearance + TOP_OFFSET + PIECE_HEIGHT + spacing.sm;
 }
 
 /**
@@ -35,9 +37,13 @@ export function useFloatingHeaderClearance() {
  */
 export function Header({ title, onBackPress, rightElement }: HeaderProps) {
   const insets = useSafeAreaInsets();
+  const { topClearance } = useTabBarLayout();
 
   return (
-    <View style={[styles.floatingLayer, { top: insets.top + TOP_OFFSET }]} pointerEvents="box-none">
+    <View
+      style={[styles.floatingLayer, { top: insets.top + topClearance + TOP_OFFSET }]}
+      pointerEvents="box-none"
+    >
       <View style={styles.row}>
         <View style={styles.side}>
           {onBackPress ? (
