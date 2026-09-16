@@ -7,7 +7,8 @@ import { colors, radii, spacing, typography } from '@/theme';
 export type ProCardProps = {
   name: string;
   role: string;
-  rating: number;
+  /** Omitted for data sources with no rating field (e.g. API-fetched providers) — hides the star row instead of faking a number. */
+  rating?: number;
   imageUrl?: string;
   onPress?: () => void;
 };
@@ -35,10 +36,12 @@ export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps)
       {/* Its own item in the outer row (not nested with the text above), so it
           inherits the row's alignItems: 'center' against the *whole* card's
           height — centered vs the whole tile instead of just the wrapped text. */}
-      <View style={styles.rating}>
-        <Ionicons name="star" size={12} color={colors.primary} />
-        <Text style={[typography.bodyS, styles.meta]}>{rating.toFixed(1)}</Text>
-      </View>
+      {rating !== undefined ? (
+        <View style={styles.rating}>
+          <Ionicons name="star" size={12} color={colors.primary} />
+          <Text style={[typography.bodyS, styles.meta]}>{rating.toFixed(1)}</Text>
+        </View>
+      ) : null}
 
       {onPress ? <Ionicons name="chevron-forward" size={12} color={colors.textMuted} /> : null}
     </Pressable>

@@ -6,17 +6,20 @@ import { Platform } from 'react-native';
 import type { AppleIcon } from 'react-native-bottom-tabs';
 
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
+import { CategoryDetailsScreen } from '@/screens/CategoryDetailsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
+import { ProviderDetailsScreen } from '@/screens/ProviderDetailsScreen';
 import { colors } from '@/theme';
 
 import { SCREENS } from './screens';
-import type { HomeStackParamList, RootTabParamList } from './types';
+import type { CategoriesStackParamList, HomeStackParamList, RootTabParamList } from './types';
 import type { ResolvedTabIcon } from './useAndroidTabIcons';
 
 const Tab = createNativeBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const CategoriesStack = createNativeStackNavigator<CategoriesStackParamList>();
 
 /** Opens the side Drawer — dispatched actions bubble up to the nearest ancestor that handles them, so this works from any depth. */
 function openDrawer() {
@@ -39,13 +42,24 @@ function BookingsTab() {
   );
 }
 
-/** Home is the only tab that pushes a detail screen — that's where the native slide + swipe-back shows up. */
+/** Home pushes a Pro Details screen — that's where the native slide + swipe-back shows up. */
 function HomeStackNavigator() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name={SCREENS.HOME_MAIN} component={HomeScreen} />
       <HomeStack.Screen name={SCREENS.PRO_DETAILS} component={ProDetailsScreen} />
     </HomeStack.Navigator>
+  );
+}
+
+/** Categories pushes a live provider directory, then a provider's own profile. */
+function CategoriesStackNavigator() {
+  return (
+    <CategoriesStack.Navigator screenOptions={{ headerShown: false }}>
+      <CategoriesStack.Screen name={SCREENS.CATEGORIES_MAIN} component={CategoriesScreen} />
+      <CategoriesStack.Screen name={SCREENS.CATEGORY_DETAILS} component={CategoryDetailsScreen} />
+      <CategoriesStack.Screen name={SCREENS.PROVIDER_DETAILS} component={ProviderDetailsScreen} />
+    </CategoriesStack.Navigator>
   );
 }
 
@@ -122,7 +136,7 @@ export function MainTabs({ androidIcons }: MainTabsProps) {
           Figma tab bar labels this tab "Search" — see mockData/MainTabs notes. */}
       <Tab.Screen
         name={SCREENS.CATEGORIES}
-        component={CategoriesScreen}
+        component={CategoriesStackNavigator}
         options={{
           tabBarLabel: 'Search',
           tabBarIcon: makeTabIcon('magnifyingglass', SCREENS.CATEGORIES, androidIcons),

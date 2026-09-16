@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DrawerActions } from '@react-navigation/routers';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -9,11 +10,13 @@ import { SearchBar } from '@/components/SearchBar';
 import { TradeIcon } from '@/components/TradeIcon';
 import { categories } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { SCREENS } from '@/navigation/screens';
+import type { CategoriesStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, spacing, typography } from '@/theme';
 
 export function CategoriesScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<CategoriesStackParamList>>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
@@ -48,7 +51,12 @@ export function CategoriesScreen() {
                     title={category.label}
                     leftIcon={<TradeIcon name={category.icon} color={colors.textSecondary} />}
                     showChevron
-                    onPress={() => {}}
+                    onPress={() =>
+                      navigation.navigate(SCREENS.CATEGORY_DETAILS, {
+                        categoryId: category.id,
+                        categoryLabel: category.label,
+                      })
+                    }
                   />
                 </View>
               ))}

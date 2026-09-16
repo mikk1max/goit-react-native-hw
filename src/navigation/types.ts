@@ -4,6 +4,13 @@ export type HomeStackParamList = {
   ProDetails: { proId: string } | undefined;
 };
 
+/** Screens pushed on top of the Categories/Search tab. */
+export type CategoriesStackParamList = {
+  CategoriesMain: undefined;
+  CategoryDetails: { categoryId: string; categoryLabel: string };
+  ProviderDetails: { providerId: number };
+};
+
 /** The 5 bottom tabs — each is its own native stack, even where that stack is one screen deep. */
 export type RootTabParamList = {
   Home: undefined;

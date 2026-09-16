@@ -17,4 +17,8 @@ export const SCREENS = {
   // Home stack (pushed on top of the Home tab)
   HOME_MAIN: 'HomeMain',
   PRO_DETAILS: 'ProDetails',
+  // Categories stack (pushed on top of the Categories/Search tab)
+  CATEGORIES_MAIN: 'CategoriesMain',
+  CATEGORY_DETAILS: 'CategoryDetails',
+  PROVIDER_DETAILS: 'ProviderDetails',
 } as const;

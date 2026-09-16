@@ -6,17 +6,20 @@ import { DrawerActions } from '@react-navigation/routers';
 import type { ComponentProps } from 'react';
 
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
+import { CategoryDetailsScreen } from '@/screens/CategoryDetailsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
+import { ProviderDetailsScreen } from '@/screens/ProviderDetailsScreen';
 import { colors } from '@/theme';
 
 import { SCREENS } from './screens';
-import type { HomeStackParamList, RootTabParamList } from './types';
+import type { CategoriesStackParamList, HomeStackParamList, RootTabParamList } from './types';
 import type { MainTabsProps } from './MainTabs.native';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const CategoriesStack = createNativeStackNavigator<CategoriesStackParamList>();
 
 /** Opens the side Drawer — dispatched actions bubble up to the nearest ancestor that handles them, so this works from any depth. */
 function openDrawer() {
@@ -29,6 +32,16 @@ function HomeStackNavigator() {
       <HomeStack.Screen name={SCREENS.HOME_MAIN} component={HomeScreen} />
       <HomeStack.Screen name={SCREENS.PRO_DETAILS} component={ProDetailsScreen} />
     </HomeStack.Navigator>
+  );
+}
+
+function CategoriesStackNavigator() {
+  return (
+    <CategoriesStack.Navigator screenOptions={{ headerShown: false }}>
+      <CategoriesStack.Screen name={SCREENS.CATEGORIES_MAIN} component={CategoriesScreen} />
+      <CategoriesStack.Screen name={SCREENS.CATEGORY_DETAILS} component={CategoryDetailsScreen} />
+      <CategoriesStack.Screen name={SCREENS.PROVIDER_DETAILS} component={ProviderDetailsScreen} />
+    </CategoriesStack.Navigator>
   );
 }
 
@@ -100,7 +113,7 @@ export function MainTabs(_props: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.CATEGORIES}
-        component={CategoriesScreen}
+        component={CategoriesStackNavigator}
         options={{
           tabBarLabel: 'Search',
           tabBarIcon: ({ color, size }) => (

@@ -4,7 +4,9 @@ Cross-discipline assignment 3 turned the FixIt Figma design into real,
 reusable React Native components with Expo + TypeScript. Cross-discipline
 assignment 4 layered real navigation on top: a Drawer wrapping the tab bar,
 and screens that actually pass and validate data between each other instead
-of always showing the same hardcoded pro.
+of always showing the same hardcoded pro. Cross-discipline assignment 5 adds
+a live API-backed screen — Categories now leads to a real fetched provider
+directory instead of a dead end.
 
 FixIt is a mobile app that connects users with trusted local pros —
 plumber, electrician, cleaner, painter, carpenter, gardener — for a
@@ -61,6 +63,22 @@ different `proId` — the About/Pricing/Reviews are Anna's own, not Marek's:
 
 An invalid `proId` renders an explicit error state instead of crashing:
 ![Pro not found](screenshots/navigation/06-pro-not-found.png)
+
+**Live API data** (a category's provider directory, fetched from a real
+endpoint — see "Live data" below):
+
+A category's fetched provider list (phone):
+![Category provider list](screenshots/api/01-category-list.png)
+
+The same list, 2-column on tablet:
+![Category provider list, tablet](screenshots/api/03-category-list-tablet.png)
+
+Tapping a provider fetches and shows that one record's own detail:
+![Provider details](screenshots/api/02-provider-details.png)
+
+The request failing renders an explicit error with a retry button, not a
+blank screen or a crash:
+![API error state](screenshots/api/04-error-state.png)
 
 ## Components
 
@@ -141,6 +159,9 @@ Three navigators, nested Drawer → Tab → Stack, each in its own file under
   Home's own stack. Tapping a recommended pro pushes Pro profile with the
   platform's native transition and swipe-back gesture, passing
   `{ proId: pro.id }` through `navigation.navigate()`.
+- **`CategoriesStackNavigator`** (inside `MainTabs.*.tsx`) — Categories' own
+  stack: the category list, a fetched provider directory per category, and
+  a single provider's own profile. See "Live data" below.
 
 **Passing data between screens:** `ProDetailsScreen` reads `route.params.proId`
 and looks the pro up in `recommendedPros` — it no longer just always renders
@@ -166,6 +187,44 @@ instead of Expo SDK 57's default `~2.32.0` (see `expo.install.exclude` in
 Worklets runtime don't agree on how gesture callbacks cross the JS/UI-thread
 boundary — every tap inside the Drawer threw a "tried to synchronously call
 a Remote Function" error under 2.32.0. Bumping to 3.x fixed it outright.
+
+## Live data
+
+Tapping a category no longer does nothing — `CategoryDetailsScreen` fetches
+and lists real records over HTTPS, and `ProviderDetailsScreen` fetches one
+record's own detail when you tap into it.
+
+- **`src/api/providers.ts`** — the only file that calls `fetch()`, per the
+  assignment's "keep request logic in its own file" requirement. FixIt has
+  no backend and no public API exists for "local home-service pros" to
+  integrate against, so — per the assignment's own fallback — this hits
+  [JSONPlaceholder](https://jsonplaceholder.typicode.com)'s `/users`
+  endpoint as stand-in provider records, behind a `fetchProviders()` (list)
+  and `fetchProviderById(id)` (single record) pair sharing one `get()`
+  helper. `API_URL` is a constant, not inlined at every call site.
+- **Real GET requests, not axios** — plain `fetch`, matching the assignment's
+  own example code; no reason to add a dependency for one endpoint.
+- **State via `useState`**, one variable each for the data, `loading`, and
+  `error` — no `useReducer`; three independent booleans/values don't need a
+  reducer's ceremony.
+- **`FlatList`**, not a mapped `View` (unlike Home's local `recommendedPros`
+  grid) — `renderItem` renders the existing `ProCard` component, `numColumns`
+  reflows to 2 columns on tablets the same way the rest of the app does, and
+  `keyExtractor` is `item => item.id.toString()`.
+- **Loading and errors are real states, not afterthoughts** — an
+  `ActivityIndicator` while the request is in flight, and network failures
+  (DNS, no connection) and non-2xx responses both render as an explicit
+  message with a "Try again" button, never a blank screen.
+- **Navigation stays wired the same way as assignment 4** — tapping a
+  provider pushes `ProviderDetails` with `{ providerId: item.id }`, which
+  re-fetches that one record by id rather than reusing the list response
+  (`GET /users/:id`), the pattern a real per-record detail endpoint would
+  need even though JSONPlaceholder happens to return the same shape either
+  way.
+- **Honest about the mock's limits:** JSONPlaceholder's `/users` has no
+  category field, so `CategoryDetailsScreen` shows the same 10 records for
+  every category and says so in its own subtitle, rather than pretending to
+  filter server-side data that doesn't exist.
 
 ## Liquid Glass
 
@@ -206,8 +265,10 @@ src/
   navigation/    RootNavigator (Drawer), MainTabs (native/web), screens.ts,
                  DrawerContent, tab bar height/icon helpers
   screens/       HomeScreen, CategoriesScreen, ProDetailsScreen,
+                 CategoryDetailsScreen, ProviderDetailsScreen,
                  HelpScreen, ContactScreen, PlaceholderScreen
-  data/          mockData.ts
+  data/          mockData.ts — local mock data (Home's pros)
+  api/           providers.ts — live JSONPlaceholder-backed data (Categories' pros)
 screenshots/
 ```
 
@@ -216,10 +277,9 @@ screenshots/
 Out of scope for this assignment:
 
 - `TextField`, `TextArea`, `Checkbox` and the Checkout/booking screen
-- A real category-detail screen (`CategoriesScreen`'s rows are currently a
-  no-op)
 - A real Bookings/Messages/Profile — those tabs are placeholders
   (`PlaceholderScreen`), and Profile's own tabs (order history, settings)
   from the assignment brief's example aren't built
-- Real data fetching (`data/mockData.ts` is static)
+- Home's `recommendedPros` still reads local mock data, not the API — only
+  Categories' provider directory is API-backed (assignment 5's own scope)
 - Tests, form validation for the booking flow
