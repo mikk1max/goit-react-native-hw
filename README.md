@@ -25,9 +25,17 @@ actual native tab bar and Liquid Glass chrome below, not a web mockup.
 
 **Landscape / tablet** (content reflows into a 2-column grid past 600dp):
 
-| Landscape                                       | Tablet                                    | Categories (tablet)                                        | Pro profile (tablet)                                         |
-| ----------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
-| ![Landscape](screenshots/04-home-landscape.png) | ![Tablet](screenshots/05-home-tablet.png) | ![Categories tablet](screenshots/06-categories-tablet.png) | ![Pro details tablet](screenshots/07-pro-details-tablet.png) |
+Landscape:
+![Landscape](screenshots/04-home-landscape.png)
+
+Tablet:
+![Tablet](screenshots/05-home-tablet.png)
+
+Categories (tablet):
+![Categories tablet](screenshots/06-categories-tablet.png)
+
+Pro profile (tablet):
+![Pro details tablet](screenshots/07-pro-details-tablet.png)
 
 ## Components
 
