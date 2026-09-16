@@ -1,4 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -10,42 +11,62 @@ import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
 import { WeeklyCalendar } from '@/components/WeeklyCalendar';
-import { currentWeek, pricingList, recommendedPros, reviews } from '@/data/mockData';
+import { currentWeek, recommendedPros } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { HomeStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { colors, spacing, typography } from '@/theme';
 
+type ProDetailsRoute = RouteProp<HomeStackParamList, 'ProDetails'>;
+
 export function ProDetailsScreen() {
   const navigation = useNavigation();
+  const route = useRoute<ProDetailsRoute>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
-  // Only ever reached by pushing from Home, so there's always a screen to go back to.
   const { bottomClearance } = useTabBarLayout();
   const [week] = useState(currentWeek);
   const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
+
+  const proId = route.params?.proId;
+  const pro = proId ? recommendedPros.find((candidate) => candidate.id === proId) : undefined;
+
+  // proId can be missing or stale (a bad deep link, a typo'd id) — show a
+  // clear dead end with a way back instead of crashing on `pro.name` below.
+  if (!pro) {
+    return (
+      <View style={styles.screen}>
+        <View style={[styles.errorState, { paddingTop: headerClearance }]}>
+          <Text style={[typography.h4, styles.errorTitle]}>Pro not found</Text>
+          <Text style={[typography.bodyM, styles.errorBody]}>
+            {proId
+              ? `No pro matches id "${proId}".`
+              : "This screen needs a pro's id to know who to show."}
+          </Text>
+          <Button title="Back to Home" onPress={() => navigation.goBack()} fullWidth={false} />
+        </View>
+        <Header title="Pro profile" onBackPress={() => navigation.goBack()} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <View style={styles.profileHeader}>
-            {/* This screen is always Marek Nowak for now (see Roadmap: no
-                real data fetching by proId yet) — his own mock image. */}
-            <Avatar size="lg" imageUrl={recommendedPros[0].imageUrl} />
-            <Text style={[typography.h1, styles.name]}>Marek Nowak</Text>
-            <StarRating rating={4.9} />
-            <Tag label="Plumber" />
+            <Avatar size="lg" imageUrl={pro.imageUrl} />
+            <Text style={[typography.h1, styles.name]}>{pro.name}</Text>
+            <StarRating rating={pro.rating} />
+            <Tag label={pro.role} />
           </View>
 
           <Text style={typography.sectionTitle}>About</Text>
-          <Text style={[typography.bodyM, styles.about]}>
-            12 years of experience in plumbing repairs. I specialize in emergency leaks and
-            pipe/fixture replacement.
-          </Text>
+          <Text style={[typography.bodyM, styles.about]}>{pro.about}</Text>
 
           <Text style={typography.sectionTitle}>Pricing</Text>
           <View style={styles.grid}>
-            {pricingList.map((item) => (
+            {pro.pricing.map((item) => (
               <View key={item.id} style={{ width: cardWidth }}>
                 <ListItem title={item.title} subtitle={item.subtitle} />
               </View>
@@ -61,11 +82,11 @@ export function ProDetailsScreen() {
 
           <Text style={typography.sectionTitle}>Reviews</Text>
           <View style={styles.grid}>
-            {reviews.map((review) => (
+            {pro.reviews.map((review) => (
               <View key={review.id} style={{ width: cardWidth }}>
                 <ProCard
                   name={review.name}
-                  role={review.role}
+                  role={review.comment}
                   rating={review.rating}
                   imageUrl={review.imageUrl}
                 />
@@ -125,5 +146,19 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
+  },
+  errorState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+  },
+  errorTitle: {
+    color: colors.textPrimary,
+  },
+  errorBody: {
+    color: colors.textMuted,
+    textAlign: 'center',
   },
 });
