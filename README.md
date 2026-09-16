@@ -1,7 +1,10 @@
 # FixIt — React Native Component Library
 
-Cross-discipline assignment 3: turning the FixIt Figma design into real,
-reusable React Native components with Expo + TypeScript.
+Cross-discipline assignment 3 turned the FixIt Figma design into real,
+reusable React Native components with Expo + TypeScript. Cross-discipline
+assignment 4 layered real navigation on top: a Drawer wrapping the tab bar,
+and screens that actually pass and validate data between each other instead
+of always showing the same hardcoded pro.
 
 FixIt is a mobile app that connects users with trusted local pros —
 plumber, electrician, cleaner, painter, carpenter, gardener — for a
@@ -36,6 +39,28 @@ Categories (tablet):
 
 Pro profile (tablet):
 ![Pro details tablet](screenshots/07-pro-details-tablet.png)
+
+**Navigation** (Drawer menu, dynamic Pro profile, error handling — see
+"Navigation" below):
+
+Drawer open (swipe-from-edge or the ☰ button):
+![Drawer open](screenshots/navigation/01-drawer-open.png)
+
+Help & Support (a Drawer-only screen, no tab bar):
+![Help screen](screenshots/navigation/02-help-screen.png)
+
+Contact us:
+![Contact screen](screenshots/navigation/03-contact-screen.png)
+
+Sign out (an honest placeholder — there's no account in this app):
+![Sign out alert](screenshots/navigation/04-sign-out-alert.png)
+
+Pro profile for a different pro, reached via the same screen with a
+different `proId` — the About/Pricing/Reviews are Anna's own, not Marek's:
+![Pro details, Anna Kowalska](screenshots/navigation/05-pro-details-anna.png)
+
+An invalid `proId` renders an explicit error state instead of crashing:
+![Pro not found](screenshots/navigation/06-pro-not-found.png)
 
 ## Components
 
@@ -90,23 +115,57 @@ rotated phone gets the same treatment as a small tablet:
   cards (`ProCard`, `ListItem`) reflow into a 2-column grid instead of
   stretching into one very wide row.
 
-## Navigation & the tab bar
+## Navigation
 
-Screen transitions use `@react-navigation/native-stack` — tapping a
-recommended pro on Home pushes the Pro profile screen with the platform's
-native transition and swipe-back gesture.
+Three navigators, nested Drawer → Tab → Stack, each in its own file under
+`src/navigation/`:
 
-The bottom tab bar is the **actual native tab bar widget**
-(`react-native-bottom-tabs` + `@bottom-tabs/react-navigation`) —
-`UITabBarController` on iOS, which picks up iOS 26's Liquid Glass
-automatically, and Material 3 `BottomNavigation` on Android — rather than a
-JS view styled to look like one. Icons are platform-native too: real SF
-Symbols on iOS, rasterized Ionicons on Android (no SF Symbols equivalent
-there).
+- **`RootNavigator.tsx`** — a `Drawer.Navigator` (`@react-navigation/drawer`)
+  wrapping the whole app. `Main` is the 5-tab app below; `Help` and `Contact`
+  are Drawer-only screens with no tab bar of their own. The Drawer's content
+  is fully custom (`DrawerContent.tsx`) instead of the library's default
+  list, so it matches the app's own colors/type/spacing. Swipe-from-the-left
+  and the ☰ button on every root tab screen both open it.
+- **`MainTabs.native.tsx`** / **`MainTabs.web.tsx`** — the 5 bottom tabs
+  (Home, Search, Bookings, Messages, Profile). The bottom tab bar is the
+  **actual native tab bar widget** (`react-native-bottom-tabs` +
+  `@bottom-tabs/react-navigation`) — `UITabBarController` on iOS, which
+  picks up iOS 26's Liquid Glass automatically (and its iPad-only top-bar
+  layout — see `useTabBarLayout`), and Material 3 `BottomNavigation` on
+  Android, rather than a JS view styled to look like one. Icons are
+  platform-native too: real SF Symbols on iOS, rasterized Ionicons on
+  Android. **This needs a development build — it does not run in Expo Go**,
+  and has no web target (`MainTabs.web.tsx` is a plain JS bottom-tabs bar,
+  used only to keep `npm run web` bundling for quick layout previews).
+- **`HomeStackNavigator`** (inside `MainTabs.*.tsx`) — `@react-navigation/native-stack`,
+  Home's own stack. Tapping a recommended pro pushes Pro profile with the
+  platform's native transition and swipe-back gesture, passing
+  `{ proId: pro.id }` through `navigation.navigate()`.
 
-**This needs a development build — it does not run in Expo Go**, and has no
-web target (used only for quickly previewing layout during development, not
-for the tab bar itself). See "Running the project" below.
+**Passing data between screens:** `ProDetailsScreen` reads `route.params.proId`
+and looks the pro up in `recommendedPros` — it no longer just always renders
+Marek Nowak. If `proId` is missing (a screen reached with no params) or
+doesn't match any pro (a stale id), the screen renders an explicit "Pro not
+found" state with a way back, instead of crashing on `pro.name`.
+
+**Screen names are constants**, not scattered string literals — every
+navigator and every `navigate()` call reads from `SCREENS` in
+`src/navigation/screens.ts`.
+
+**Gestures:** the Drawer's swipe-from-edge-to-open works everywhere, and
+swipe-to-close works while it's open. On Pro profile specifically, that same
+left edge is also where native-stack's own swipe-back gesture lives; the
+Drawer currently wins that conflict, so Pro profile's reliable "go back" is
+its Header's back button rather than an edge swipe (see the comment on
+`RootNavigator.tsx`'s `Main` screen for why the usual fix — disabling the
+Drawer's swipe while a nested screen is focused — doesn't take effect here).
+
+**Dependency note:** `react-native-gesture-handler` is pinned to `^3.3.0`
+instead of Expo SDK 57's default `~2.32.0` (see `expo.install.exclude` in
+`package.json`). The older version and `react-native-reanimated`'s new
+Worklets runtime don't agree on how gesture callbacks cross the JS/UI-thread
+boundary — every tap inside the Drawer threw a "tried to synchronously call
+a Remote Function" error under 2.32.0. Bumping to 3.x fixed it outright.
 
 ## Liquid Glass
 
@@ -144,8 +203,10 @@ src/
                  SearchBar/ ListItem/ ProCard/ CategoryList/ GlassSurface/
                  TradeIcon/
   hooks/         useResponsiveLayout.ts
-  navigation/    RootNavigator (native/web), tab bar + icon helpers
-  screens/       HomeScreen, CategoriesScreen, ProDetailsScreen, PlaceholderScreen
+  navigation/    RootNavigator (Drawer), MainTabs (native/web), screens.ts,
+                 DrawerContent, tab bar height/icon helpers
+  screens/       HomeScreen, CategoriesScreen, ProDetailsScreen,
+                 HelpScreen, ContactScreen, PlaceholderScreen
   data/          mockData.ts
 screenshots/
 ```
@@ -154,9 +215,11 @@ screenshots/
 
 Out of scope for this assignment:
 
-- `TextField`, `TextArea`, `Checkbox`, `WeeklyCalendar` and the
-  Checkout/booking screen
+- `TextField`, `TextArea`, `Checkbox` and the Checkout/booking screen
 - A real category-detail screen (`CategoriesScreen`'s rows are currently a
   no-op)
+- A real Bookings/Messages/Profile — those tabs are placeholders
+  (`PlaceholderScreen`), and Profile's own tabs (order history, settings)
+  from the assignment brief's example aren't built
 - Real data fetching (`data/mockData.ts` is static)
 - Tests, form validation for the booking flow
