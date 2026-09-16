@@ -3,7 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { avatarFor, fetchProviderById } from '@/api/providers';
+import { fetchProviderById } from '@/api/providers';
 import type { ApiProvider } from '@/api/providers';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
@@ -18,11 +18,12 @@ import { colors, spacing, typography } from '@/theme';
 type ProviderDetailsRoute = RouteProp<CategoriesStackParamList, 'ProviderDetails'>;
 
 /**
- * Reached by tapping a provider on CategoryDetailsScreen — re-fetches that
- * one record by id (GET /users/:id) rather than reusing the list response,
- * the way a real detail screen would once the backend has per-record data
- * the list view doesn't carry (JSONPlaceholder returns the same shape
- * either way, but the pattern is the point).
+ * Reached by tapping a provider on CategoryDetailsScreen — fetches that one
+ * record again instead of reusing the list response, the way a real detail
+ * screen would once the backend has a true per-record GET endpoint.
+ * randomuser.me doesn't have one (it's a generator, not a database), so
+ * fetchProviderById re-issues the same seeded request and finds the record
+ * client-side — see the comment on that function in api/providers.ts.
  */
 export function ProviderDetailsScreen() {
   const navigation = useNavigation();
@@ -90,26 +91,23 @@ export function ProviderDetailsScreen() {
       >
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <View style={styles.profileHeader}>
-            <Avatar size="lg" imageUrl={avatarFor(provider.id)} />
+            <Avatar size="lg" imageUrl={provider.imageUrl} />
             <Text style={[typography.h1, styles.name]}>{provider.name}</Text>
-            <Tag label={provider.company.name} />
+            <Tag label={provider.role} />
           </View>
 
           <Text style={typography.sectionTitle}>About</Text>
-          <Text style={[typography.bodyM, styles.about]}>{provider.company.catchPhrase}</Text>
+          <Text style={[typography.bodyM, styles.about]}>{provider.about}</Text>
 
           <Text style={typography.sectionTitle}>Contact</Text>
           <View style={styles.list}>
             <ListItem title={provider.email} subtitle="Email" />
             <ListItem title={provider.phone} subtitle="Phone" />
-            <ListItem title={provider.website} subtitle="Website" />
+            <ListItem title={provider.cell} subtitle="Mobile" />
           </View>
 
           <Text style={typography.sectionTitle}>Address</Text>
-          <ListItem
-            title={`${provider.address.street}, ${provider.address.suite}`}
-            subtitle={`${provider.address.city}, ${provider.address.zipcode}`}
-          />
+          <ListItem title={provider.address} subtitle="Address" />
         </View>
       </ScrollView>
 

@@ -8,7 +8,7 @@ export type HomeStackParamList = {
 export type CategoriesStackParamList = {
   CategoriesMain: undefined;
   CategoryDetails: { categoryId: string; categoryLabel: string };
-  ProviderDetails: { providerId: number };
+  ProviderDetails: { providerId: string };
 };
 
 /** The 5 bottom tabs — each is its own native stack, even where that stack is one screen deep. */

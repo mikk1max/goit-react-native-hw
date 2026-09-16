@@ -197,11 +197,14 @@ record's own detail when you tap into it.
 - **`src/api/providers.ts`** — the only file that calls `fetch()`, per the
   assignment's "keep request logic in its own file" requirement. FixIt has
   no backend and no public API exists for "local home-service pros" to
-  integrate against, so — per the assignment's own fallback — this hits
-  [JSONPlaceholder](https://jsonplaceholder.typicode.com)'s `/users`
-  endpoint as stand-in provider records, behind a `fetchProviders()` (list)
-  and `fetchProviderById(id)` (single record) pair sharing one `get()`
-  helper. `API_URL` is a constant, not inlined at every call site.
+  integrate against, so this hits
+  [randomuser.me](https://randomuser.me), a free, no-key, HTTPS API built
+  for exactly this kind of placeholder-person data — real-looking headshots
+  and realistic names/contact/location fields — behind a
+  `fetchProvidersByCategory(categoryId)` (list) and `fetchProviderById(id)`
+  (single record) pair sharing one `getProviders()` helper. `API_URL` is a
+  constant, not inlined at every call site, and pins a fixed `seed` so the
+  directory doesn't reshuffle on every reload.
 - **Real GET requests, not axios** — plain `fetch`, matching the assignment's
   own example code; no reason to add a dependency for one endpoint.
 - **State via `useState`**, one variable each for the data, `loading`, and
@@ -210,21 +213,26 @@ record's own detail when you tap into it.
 - **`FlatList`**, not a mapped `View` (unlike Home's local `recommendedPros`
   grid) — `renderItem` renders the existing `ProCard` component, `numColumns`
   reflows to 2 columns on tablets the same way the rest of the app does, and
-  `keyExtractor` is `item => item.id.toString()`.
+  `keyExtractor` is `item => item.id` (randomuser.me's `login.uuid`).
 - **Loading and errors are real states, not afterthoughts** — an
   `ActivityIndicator` while the request is in flight, and network failures
   (DNS, no connection) and non-2xx responses both render as an explicit
   message with a "Try again" button, never a blank screen.
 - **Navigation stays wired the same way as assignment 4** — tapping a
   provider pushes `ProviderDetails` with `{ providerId: item.id }`, which
-  re-fetches that one record by id rather than reusing the list response
-  (`GET /users/:id`), the pattern a real per-record detail endpoint would
-  need even though JSONPlaceholder happens to return the same shape either
-  way.
-- **Honest about the mock's limits:** JSONPlaceholder's `/users` has no
-  category field, so `CategoryDetailsScreen` shows the same 10 records for
-  every category and says so in its own subtitle, rather than pretending to
-  filter server-side data that doesn't exist.
+  re-fetches by id rather than reusing the list response, the pattern a real
+  per-record detail endpoint would need.
+- **Honest about the API's limits:** randomuser.me is a person generator, not
+  a directory of tradespeople — it has no category or job field at all, so
+  each fetched person is assigned one of FixIt's 6 trade categories by their
+  position in the (seeded, so stable) results array, round-robin. That's
+  what makes the category filter genuinely different per category rather
+  than cosmetic, but the "About" text is FixIt's own sentence built from the
+  person's real age/city, not an API-provided bio. Likewise, randomuser.me
+  has no per-record GET endpoint, so `fetchProviderById` re-issues the same
+  seeded request and finds that one record client-side instead of hitting a
+  true `/providers/:id` route — still a real, independent network round trip
+  with its own loading/error state, just not a dedicated endpoint.
 
 ## Liquid Glass
 
@@ -268,7 +276,7 @@ src/
                  CategoryDetailsScreen, ProviderDetailsScreen,
                  HelpScreen, ContactScreen, PlaceholderScreen
   data/          mockData.ts — local mock data (Home's pros)
-  api/           providers.ts — live JSONPlaceholder-backed data (Categories' pros)
+  api/           providers.ts — live randomuser.me-backed data (Categories' pros)
 screenshots/
 ```
 

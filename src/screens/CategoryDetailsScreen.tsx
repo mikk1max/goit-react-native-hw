@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
-import { avatarFor, fetchProviders } from '@/api/providers';
+import { fetchProvidersByCategory } from '@/api/providers';
 import type { ApiProvider } from '@/api/providers';
 import { Button } from '@/components/Button';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
@@ -21,14 +21,15 @@ type CategoriesStackNav = NativeStackNavigationProp<CategoriesStackParamList>;
 /**
  * The provider directory for one category — reached from CategoriesScreen,
  * fetched live instead of read from local mock data (unlike Home's
- * recommendedPros). JSONPlaceholder's /users has no category field, so the
- * same directory shows for every category here; a real backend would filter
- * this GET by categoryId.
+ * recommendedPros). randomuser.me has no category concept at all, so
+ * fetchProvidersByCategory assigns + filters client-side (see api/providers.ts) —
+ * a real backend would do this filtering itself, but the result here is a
+ * genuinely different directory per category, not the same list relabeled.
  */
 export function CategoryDetailsScreen() {
   const navigation = useNavigation<CategoriesStackNav>();
   const route = useRoute<CategoryDetailsRoute>();
-  const { categoryLabel } = route.params;
+  const { categoryId, categoryLabel } = route.params;
   const { contentWidth, cardWidth, columns } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
@@ -42,7 +43,7 @@ export function CategoryDetailsScreen() {
   // the effect runs. "Try again" resets loading/error itself before calling
   // this, since that happens in a Pressable's onPress, not an effect body.
   const load = useCallback(() => {
-    fetchProviders()
+    fetchProvidersByCategory(categoryId)
       .then((data) => {
         setProviders(data);
         setError(null);
@@ -51,7 +52,7 @@ export function CategoryDetailsScreen() {
         setError(err instanceof Error ? err.message : 'Something went wrong.');
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [categoryId]);
 
   useEffect(() => {
     load();
@@ -85,15 +86,13 @@ export function CategoryDetailsScreen() {
           data={providers}
           numColumns={columns}
           columnWrapperStyle={columns > 1 ? styles.row : undefined}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <View style={styles.listHeader}>
               <Text style={[typography.sectionTitle, styles.sectionTitle]}>
                 Available {categoryLabel.toLowerCase()} pros
               </Text>
-              <Text style={[typography.bodyS, styles.subtitle]}>
-                Live directory data — the same list shows for every category in this demo.
-              </Text>
+              <Text style={[typography.bodyS, styles.subtitle]}>Live directory data.</Text>
             </View>
           }
           ListEmptyComponent={
@@ -103,8 +102,8 @@ export function CategoryDetailsScreen() {
             <View style={{ width: cardWidth }}>
               <ProCard
                 name={item.name}
-                role={item.company.name}
-                imageUrl={avatarFor(item.id)}
+                role={item.role}
+                imageUrl={item.imageUrl}
                 onPress={() =>
                   navigation.navigate(SCREENS.PROVIDER_DETAILS, { providerId: item.id })
                 }
