@@ -1,7 +1,17 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerActions } from '@react-navigation/routers';
 import { useState } from 'react';
-import { Alert, FlatList, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
@@ -18,7 +28,10 @@ import {
   updateBookingDate,
 } from '@/store/bookingsSlice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { radii, spacing, typography } from '@/theme';
+import { radii, shadows, spacing, typography } from '@/theme';
+
+/** A booking row's pencil icon was tapped — `y` (the touch's page position) anchors the dropdown near it. */
+type MenuTarget = { booking: Booking; y: number };
 
 /** Redux demo: every booking made from a Book appointment button lives in the `bookings` slice. */
 export function BookingsScreen() {
@@ -29,6 +42,7 @@ export function BookingsScreen() {
   const bookings = useAppSelector((state) => state.bookings);
   const dispatch = useAppDispatch();
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [menuTarget, setMenuTarget] = useState<MenuTarget | null>(null);
 
   const confirmRemove = (booking: Booking) => {
     Alert.alert('Remove booking?', `${booking.name} · ${formatBookingDate(booking.dateKey)}`, [
@@ -70,13 +84,15 @@ export function BookingsScreen() {
                 {item.role} · {formatBookingDate(item.dateKey)}
               </Text>
             </View>
-            <Button title="Change day" fullWidth={false} onPress={() => setEditingBooking(item)} />
-            <Button
-              title="Remove"
-              fullWidth={false}
-              tintColor={themeColors.urgent}
-              onPress={() => confirmRemove(item)}
-            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit booking"
+              hitSlop={8}
+              style={[styles.editButton, { backgroundColor: themeColors.surfaceMedium }]}
+              onPress={(event) => setMenuTarget({ booking: item, y: event.nativeEvent.pageY })}
+            >
+              <Ionicons name="pencil" size={16} color={themeColors.textPrimary} />
+            </Pressable>
           </View>
         )}
       />
@@ -116,6 +132,60 @@ export function BookingsScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* A dropdown, not two buttons per row — "Change day" and "Remove" sat
+          behind one pencil icon so a stray tap can't fire either directly. */}
+      <Modal
+        visible={menuTarget !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuTarget(null)}
+      >
+        <Pressable style={styles.menuOverlay} onPress={() => setMenuTarget(null)}>
+          {menuTarget ? (
+            <View
+              style={[
+                styles.menu,
+                {
+                  top: menuTarget.y - spacing.md,
+                  backgroundColor: themeColors.surface,
+                  borderColor: themeColors.border,
+                },
+              ]}
+            >
+              <Pressable
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  pressed && { backgroundColor: themeColors.surfaceMedium },
+                ]}
+                onPress={() => {
+                  setEditingBooking(menuTarget.booking);
+                  setMenuTarget(null);
+                }}
+              >
+                <Ionicons name="calendar-outline" size={18} color={themeColors.textPrimary} />
+                <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>
+                  Change day
+                </Text>
+              </Pressable>
+              <View style={[styles.menuDivider, { backgroundColor: themeColors.borderLight }]} />
+              <Pressable
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  pressed && { backgroundColor: themeColors.surfaceMedium },
+                ]}
+                onPress={() => {
+                  confirmRemove(menuTarget.booking);
+                  setMenuTarget(null);
+                }}
+              >
+                <Ionicons name="trash-outline" size={18} color={themeColors.urgent} />
+                <Text style={[typography.bodyM, { color: themeColors.urgent }]}>Remove</Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </Pressable>
       </Modal>
     </View>
   );
@@ -167,5 +237,34 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginTop: spacing.xs,
+  },
+  editButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuOverlay: {
+    flex: 1,
+  },
+  menu: {
+    position: 'absolute',
+    right: spacing.md,
+    minWidth: 170,
+    borderRadius: radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+    ...shadows.card,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
   },
 });
