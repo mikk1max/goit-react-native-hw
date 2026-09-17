@@ -5,13 +5,15 @@ import { DrawerActions } from '@react-navigation/routers';
 import { Platform } from 'react-native';
 import type { AppleIcon } from 'react-native-bottom-tabs';
 
+import { useTheme } from '@/context/ThemeContext';
+import { BookingsScreen } from '@/screens/BookingsScreen';
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
 import { CategoryDetailsScreen } from '@/screens/CategoryDetailsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
 import { ProviderDetailsScreen } from '@/screens/ProviderDetailsScreen';
-import { colors } from '@/theme';
+import { UrgentBookingScreen } from '@/screens/UrgentBookingScreen';
 
 import { SCREENS } from './screens';
 import type { CategoriesStackParamList, HomeStackParamList, RootTabParamList } from './types';
@@ -26,36 +28,27 @@ function openDrawer() {
   return DrawerActions.openDrawer();
 }
 
-/**
- * There's no bookings-list screen yet (not part of this assignment's Figma
- * frames — see the Roadmap), so this tab is an honest "coming soon" rather
- * than showing an unrelated pro's profile as a placeholder for it.
- */
-function BookingsTab() {
-  const navigation = useNavigation();
-  return (
-    <PlaceholderScreen
-      title="Bookings"
-      icon="calendar-outline"
-      onMenuPress={() => navigation.dispatch(openDrawer())}
-    />
-  );
-}
-
 /** Home pushes a Pro Details screen — that's where the native slide + swipe-back shows up. */
 function HomeStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+    <HomeStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
       <HomeStack.Screen name={SCREENS.HOME_MAIN} component={HomeScreen} />
       <HomeStack.Screen name={SCREENS.PRO_DETAILS} component={ProDetailsScreen} />
+      <HomeStack.Screen name={SCREENS.URGENT_BOOKING} component={UrgentBookingScreen} />
     </HomeStack.Navigator>
   );
 }
 
 /** Categories pushes a live provider directory, then a provider's own profile. */
 function CategoriesStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <CategoriesStack.Navigator screenOptions={{ headerShown: false }}>
+    <CategoriesStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
       <CategoriesStack.Screen name={SCREENS.CATEGORIES_MAIN} component={CategoriesScreen} />
       <CategoriesStack.Screen name={SCREENS.CATEGORY_DETAILS} component={CategoryDetailsScreen} />
       <CategoriesStack.Screen name={SCREENS.PROVIDER_DETAILS} component={ProviderDetailsScreen} />
@@ -115,10 +108,12 @@ function makeTabIcon(
 
 /** The app's 5-tab home — rendered as the Drawer's "Main" screen (see RootNavigator.tsx). */
 export function MainTabs({ androidIcons }: MainTabsProps) {
+  const { colors: themeColors } = useTheme();
+
   return (
     <Tab.Navigator
-      tabBarActiveTintColor={colors.primary}
-      tabBarInactiveTintColor={colors.textMuted}
+      tabBarActiveTintColor={themeColors.primary}
+      tabBarInactiveTintColor={themeColors.textMuted}
     >
       <Tab.Screen
         name={SCREENS.HOME}
@@ -144,7 +139,7 @@ export function MainTabs({ androidIcons }: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.BOOKINGS}
-        component={BookingsTab}
+        component={BookingsScreen}
         options={{
           tabBarLabel: 'Bookings',
           tabBarIcon: makeTabIcon('calendar', SCREENS.BOOKINGS, androidIcons),

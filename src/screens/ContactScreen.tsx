@@ -4,9 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
+import { useTheme } from '@/context/ThemeContext';
 import { SCREENS } from '@/navigation/screens';
 import type { RootDrawerParamList } from '@/navigation/types';
-import { colors, radii, spacing, typography } from '@/theme';
+import { radii, spacing, typography } from '@/theme';
 
 const CHANNELS = [
   { icon: 'mail-outline', label: 'support@fixit.app' },
@@ -18,16 +19,19 @@ const CHANNELS = [
 export function ContactScreen() {
   const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
   const headerClearance = useFloatingHeaderClearance();
+  const { colors: themeColors } = useTheme();
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       <View style={[styles.content, { paddingTop: headerClearance }]}>
         {CHANNELS.map((channel) => (
           <View key={channel.label} style={styles.row}>
-            <View style={styles.iconBadge}>
-              <Ionicons name={channel.icon} size={18} color={colors.primary} />
+            <View style={[styles.iconBadge, { backgroundColor: themeColors.primaryLightest }]}>
+              <Ionicons name={channel.icon} size={18} color={themeColors.primary} />
             </View>
-            <Text style={typography.bodyM}>{channel.label}</Text>
+            <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>
+              {channel.label}
+            </Text>
           </View>
         ))}
       </View>
@@ -40,7 +44,6 @@ export function ContactScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   content: {
     gap: spacing.md,
@@ -55,7 +58,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radii.round,
-    backgroundColor: colors.primaryLightest,
     alignItems: 'center',
     justifyContent: 'center',
   },

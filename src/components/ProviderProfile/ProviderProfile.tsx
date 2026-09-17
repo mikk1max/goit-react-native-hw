@@ -3,14 +3,24 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { ApiProvider } from '@/api/providers';
 import { Avatar } from '@/components/Avatar';
+import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { BookingSuccessModal } from '@/components/BookingSuccessModal';
+import { Button } from '@/components/Button';
 import { ListItem } from '@/components/ListItem';
 import { ProCard } from '@/components/ProCard';
 import { StarRating } from '@/components/StarRating';
 import { Tag } from '@/components/Tag';
-import { WeeklyCalendar } from '@/components/WeeklyCalendar';
-import { currentWeek } from '@/data/mockData';
+import { useTheme } from '@/context/ThemeContext';
+import { formatBookingDate, todayDateKey } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-import { colors, spacing, typography } from '@/theme';
+import {
+  MAX_BOOKINGS_PER_DAY,
+  addBooking,
+  countBookingsOnDate,
+  findAvailableDate,
+} from '@/store/bookingsSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { spacing, typography } from '@/theme';
 
 export type ProviderProfileProps = {
   provider: ApiProvider;
@@ -24,22 +34,50 @@ export type ProviderProfileProps = {
  */
 export function ProviderProfile({ provider }: ProviderProfileProps) {
   const { cardWidth } = useResponsiveLayout();
-  const [week] = useState(currentWeek);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
+  const { colors: themeColors } = useTheme();
+  const bookings = useAppSelector((state) => state.bookings);
+  const dispatch = useAppDispatch();
+
+  // A day fills up once MAX_BOOKINGS_PER_DAY bookings (any provider) already
+  // sit on it — default to today, or the soonest day after it with room.
+  const [selectedDateKey, setSelectedDateKey] = useState(
+    () => findAvailableDate(bookings, todayDateKey()) ?? todayDateKey(),
+  );
+  const [confirmedDateKey, setConfirmedDateKey] = useState<string | null>(null);
+
+  const isDateDisabled = (dateKey: string) =>
+    countBookingsOnDate(bookings, dateKey) >= MAX_BOOKINGS_PER_DAY;
+  const selectedDayDisabled = isDateDisabled(selectedDateKey);
+
+  const book = () => {
+    if (selectedDayDisabled) {
+      return;
+    }
+    dispatch(
+      addBooking({
+        providerId: provider.id,
+        name: provider.name,
+        role: provider.role,
+        imageUrl: provider.imageUrl,
+        dateKey: selectedDateKey,
+      }),
+    );
+    setConfirmedDateKey(selectedDateKey);
+  };
 
   return (
     <>
       <View style={styles.profileHeader}>
         <Avatar size="lg" imageUrl={provider.imageUrl} />
-        <Text style={[typography.h1, styles.name]}>{provider.name}</Text>
+        <Text style={[typography.h1, { color: themeColors.textPrimary }]}>{provider.name}</Text>
         <StarRating rating={provider.rating} />
         <Tag label={provider.role} />
       </View>
 
-      <Text style={typography.sectionTitle}>About</Text>
-      <Text style={[typography.bodyM, styles.about]}>{provider.about}</Text>
+      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>About</Text>
+      <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>{provider.about}</Text>
 
-      <Text style={typography.sectionTitle}>Pricing</Text>
+      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>Pricing</Text>
       <View style={styles.grid}>
         {provider.pricing.map((item) => (
           <View key={item.id} style={{ width: cardWidth }}>
@@ -48,10 +86,16 @@ export function ProviderProfile({ provider }: ProviderProfileProps) {
         ))}
       </View>
 
-      <Text style={typography.sectionTitle}>Availability</Text>
-      <WeeklyCalendar days={week} selectedIndex={selectedDayIndex} onSelect={setSelectedDayIndex} />
+      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>
+        Availability
+      </Text>
+      <AvailabilityCalendar
+        selectedDateKey={selectedDateKey}
+        onSelectDateKey={setSelectedDateKey}
+        isDateDisabled={isDateDisabled}
+      />
 
-      <Text style={typography.sectionTitle}>Reviews</Text>
+      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>Reviews</Text>
       <View style={styles.grid}>
         {provider.reviews.map((review) => (
           <View key={review.id} style={{ width: cardWidth }}>
@@ -64,6 +108,15 @@ export function ProviderProfile({ provider }: ProviderProfileProps) {
           </View>
         ))}
       </View>
+
+      <Button title="Book appointment" onPress={book} disabled={selectedDayDisabled} />
+
+      <BookingSuccessModal
+        visible={confirmedDateKey !== null}
+        providerName={provider.name}
+        dateLabel={confirmedDateKey ? formatBookingDate(confirmedDateKey) : ''}
+        onClose={() => setConfirmedDateKey(null)}
+      />
     </>
   );
 }
@@ -72,12 +125,6 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  name: {
-    color: colors.text,
-  },
-  about: {
-    color: colors.text,
   },
   grid: {
     flexDirection: 'row',

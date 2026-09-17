@@ -12,13 +12,14 @@ import { CategoryList } from '@/components/CategoryList';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
 import { SearchBar } from '@/components/SearchBar';
+import { useTheme } from '@/context/ThemeContext';
 import { categories } from '@/data/mockData';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SCREENS } from '@/navigation/screens';
 import type { HomeStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
-import { colors, radii, spacing, typography } from '@/theme';
+import { radii, spacing, typography } from '@/theme';
 
 /** "Recommended" means top-rated — anything below this doesn't make the cut. */
 const RECOMMENDED_MIN_RATING = 4.8;
@@ -30,6 +31,8 @@ export function HomeScreen() {
   const { bottomClearance } = useTabBarLayout();
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
+  // Context API demo, 2nd consumer: same ThemeContext DrawerContent's switch flips.
+  const { colors: themeColors } = useTheme();
 
   const { data: pros = [], loading, error, retry } = useAsyncData(fetchProviders);
 
@@ -45,7 +48,7 @@ export function HomeScreen() {
   });
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -61,17 +64,24 @@ export function HomeScreen() {
 
           {/* Coral accent, not the brand blue used everywhere else — blue reads
               as "book calmly", this module means "something's wrong, act now". */}
-          <View style={styles.urgentCard}>
-            <View style={styles.urgentIcon}>
-              <Ionicons name="heart" size={20} color={colors.white} />
+          <View style={[styles.urgentCard, { backgroundColor: themeColors.urgentLight }]}>
+            <View style={[styles.urgentIcon, { backgroundColor: themeColors.urgent }]}>
+              <Ionicons name="heart" size={20} color={themeColors.white} />
             </View>
             <View style={styles.urgentText}>
-              <Text style={[typography.h4, styles.urgentTitle]}>Urgent request</Text>
-              <Text style={[typography.bodyS, styles.urgentSubtitle]}>
+              <Text style={[typography.h4, { color: themeColors.textPrimary }]}>
+                Urgent request
+              </Text>
+              <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
                 A pro arrives in about 30 minutes
               </Text>
             </View>
-            <Button title="Book now" tintColor={colors.urgent} fullWidth={false} />
+            <Button
+              title="Book now"
+              tintColor={themeColors.urgent}
+              fullWidth={false}
+              onPress={() => navigation.navigate(SCREENS.URGENT_BOOKING)}
+            />
           </View>
 
           <CategoryList
@@ -80,17 +90,27 @@ export function HomeScreen() {
             onSelect={(id) => setSelectedCategoryId((current) => (current === id ? undefined : id))}
           />
 
-          <Text style={[typography.sectionTitle, styles.sectionTitle]}>Recommended pros</Text>
+          <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>
+            Recommended pros
+          </Text>
 
           {loading ? (
-            <ActivityIndicator size="large" color={colors.primary} style={styles.sectionState} />
+            <ActivityIndicator
+              size="large"
+              color={themeColors.primary}
+              style={styles.sectionState}
+            />
           ) : error ? (
             <View style={styles.sectionState}>
-              <Text style={[typography.bodyM, styles.errorText]}>{error}</Text>
+              <Text
+                style={[typography.bodyM, { color: themeColors.textMuted, textAlign: 'center' }]}
+              >
+                {error}
+              </Text>
               <Button title="Try again" onPress={retry} fullWidth={false} />
             </View>
           ) : filteredPros.length === 0 ? (
-            <Text style={[typography.bodyM, styles.emptyState]}>
+            <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>
               No pros match your search yet.
             </Text>
           ) : (
@@ -123,7 +143,6 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   scrollContent: {
     alignItems: 'center',
@@ -136,7 +155,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.urgentLight,
     borderRadius: radii.md,
     padding: spacing.md,
   },
@@ -144,7 +162,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.pill,
-    backgroundColor: colors.urgent,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -152,26 +169,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xxs,
   },
-  urgentTitle: {
-    color: colors.textPrimary,
-  },
-  urgentSubtitle: {
-    color: colors.textMuted,
-  },
-  sectionTitle: {
-    color: colors.text,
-  },
-  emptyState: {
-    color: colors.textMuted,
-  },
   sectionState: {
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.lg,
-  },
-  errorText: {
-    color: colors.textMuted,
-    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',

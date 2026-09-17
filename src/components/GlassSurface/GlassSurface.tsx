@@ -2,6 +2,8 @@ import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable, type GlassStyle } from 'expo-glass-effect';
 import { Platform, StyleSheet, type ViewProps } from 'react-native';
 
+import { useTheme } from '@/context/ThemeContext';
+
 export type GlassSurfaceProps = ViewProps & {
   /** iOS 26 Liquid Glass variant — ignored on the BlurView fallback. */
   glassEffectStyle?: GlassStyle;
@@ -34,6 +36,8 @@ export function GlassSurface({
   children,
   ...rest
 }: GlassSurfaceProps) {
+  const { theme } = useTheme();
+
   if (supportsLiquidGlass) {
     return (
       <GlassView
@@ -49,7 +53,12 @@ export function GlassSurface({
   }
 
   return (
-    <BlurView intensity={50} tint="light" style={[styles.blurFallback, style]} {...rest}>
+    <BlurView
+      intensity={50}
+      tint={theme === 'dark' ? 'dark' : 'light'}
+      style={[styles.blurFallback, style]}
+      {...rest}
+    >
       {children}
     </BlurView>
   );

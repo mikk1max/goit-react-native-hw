@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { radii, spacing, typography } from '@/theme';
 
 export type SearchBarProps = {
   value: string;
@@ -16,17 +17,19 @@ export function SearchBar({
   placeholder = 'Search',
   onSubmitEditing,
 }: SearchBarProps) {
+  const { colors: themeColors } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Ionicons name="search" size={16} color={colors.textPlaceholder} />
+    <View style={[styles.container, { backgroundColor: themeColors.surface }]}>
+      <Ionicons name="search" size={16} color={themeColors.textPlaceholder} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.textPlaceholder}
+        placeholderTextColor={themeColors.textPlaceholder}
         onSubmitEditing={onSubmitEditing}
         returnKeyType="search"
-        style={styles.input}
+        style={[styles.input, { color: themeColors.textPrimary }]}
       />
     </View>
   );
@@ -38,7 +41,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     width: '100%',
-    backgroundColor: colors.surface,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -51,6 +53,5 @@ const styles = StyleSheet.create({
     // No explicit lineHeight here: unlike a plain Text, a TextInput clips a
     // custom font's descenders (g, y, p) when lineHeight is forced tighter
     // than its real glyph metrics — letting it size the line naturally avoids it.
-    color: colors.textPrimary,
   },
 });

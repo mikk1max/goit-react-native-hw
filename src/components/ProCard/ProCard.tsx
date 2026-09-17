@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
-import { colors, radii, spacing, typography } from '@/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { radii, spacing, typography } from '@/theme';
 
 export type ProCardProps = {
   name: string;
@@ -15,22 +16,28 @@ export type ProCardProps = {
 
 /** Recommended-pro / review card — the "product card" of this design system. */
 export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps) {
+  const { colors: themeColors } = useTheme();
+
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
       onPress={onPress}
       disabled={!onPress}
-      style={({ pressed }) => [styles.container, pressed && onPress && styles.pressed]}
+      style={({ pressed }) => [
+        styles.container,
+        { backgroundColor: themeColors.surface },
+        pressed && onPress && styles.pressed,
+      ]}
     >
-      <Avatar imageUrl={imageUrl} backgroundColor={colors.primaryLight} />
+      <Avatar imageUrl={imageUrl} backgroundColor={themeColors.primaryLight} />
 
       <View style={styles.content}>
-        <Text style={[typography.h4, styles.name]} numberOfLines={1}>
+        <Text style={[typography.h4, { color: themeColors.textPrimary }]} numberOfLines={1}>
           {name}
         </Text>
         {/* No row wrapper needed here — a Text as the sole child of a column
             wraps within its parent's width on its own, no flex/minWidth tricks. */}
-        <Text style={[typography.bodyS, styles.meta]}>{role}</Text>
+        <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>{role}</Text>
       </View>
 
       {/* Its own item in the outer row (not nested with the text above), so it
@@ -38,12 +45,14 @@ export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps)
           height — centered vs the whole tile instead of just the wrapped text. */}
       {rating !== undefined ? (
         <View style={styles.rating}>
-          <Ionicons name="star" size={12} color={colors.primary} />
-          <Text style={[typography.bodyS, styles.meta]}>{rating.toFixed(1)}</Text>
+          <Ionicons name="star" size={12} color={themeColors.primary} />
+          <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
+            {rating.toFixed(1)}
+          </Text>
         </View>
       ) : null}
 
-      {onPress ? <Ionicons name="chevron-forward" size={12} color={colors.textMuted} /> : null}
+      {onPress ? <Ionicons name="chevron-forward" size={12} color={themeColors.textMuted} /> : null}
     </Pressable>
   );
 }
@@ -54,7 +63,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     width: '100%',
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     padding: spacing.md,
   },
@@ -64,12 +72,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     gap: spacing.xxs,
-  },
-  name: {
-    color: colors.textPrimary,
-  },
-  meta: {
-    color: colors.textMuted,
   },
   rating: {
     flexDirection: 'row',

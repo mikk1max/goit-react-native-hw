@@ -5,13 +5,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DrawerActions } from '@react-navigation/routers';
 import type { ComponentProps } from 'react';
 
+import { useTheme } from '@/context/ThemeContext';
+import { BookingsScreen } from '@/screens/BookingsScreen';
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
 import { CategoryDetailsScreen } from '@/screens/CategoryDetailsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
 import { ProviderDetailsScreen } from '@/screens/ProviderDetailsScreen';
-import { colors } from '@/theme';
+import { UrgentBookingScreen } from '@/screens/UrgentBookingScreen';
 
 import { SCREENS } from './screens';
 import type { CategoriesStackParamList, HomeStackParamList, RootTabParamList } from './types';
@@ -27,33 +29,28 @@ function openDrawer() {
 }
 
 function HomeStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+    <HomeStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
       <HomeStack.Screen name={SCREENS.HOME_MAIN} component={HomeScreen} />
       <HomeStack.Screen name={SCREENS.PRO_DETAILS} component={ProDetailsScreen} />
+      <HomeStack.Screen name={SCREENS.URGENT_BOOKING} component={UrgentBookingScreen} />
     </HomeStack.Navigator>
   );
 }
 
 function CategoriesStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <CategoriesStack.Navigator screenOptions={{ headerShown: false }}>
+    <CategoriesStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
       <CategoriesStack.Screen name={SCREENS.CATEGORIES_MAIN} component={CategoriesScreen} />
       <CategoriesStack.Screen name={SCREENS.CATEGORY_DETAILS} component={CategoryDetailsScreen} />
       <CategoriesStack.Screen name={SCREENS.PROVIDER_DETAILS} component={ProviderDetailsScreen} />
     </CategoriesStack.Navigator>
-  );
-}
-
-/** No bookings-list screen exists yet — see MainTabs.native.tsx's comment. */
-function BookingsTab() {
-  const navigation = useNavigation();
-  return (
-    <PlaceholderScreen
-      title="Bookings"
-      icon="calendar-outline"
-      onMenuPress={() => navigation.dispatch(openDrawer())}
-    />
   );
 }
 
@@ -94,12 +91,14 @@ const TAB_ICONS: Record<keyof RootTabParamList, ComponentProps<typeof Ionicons>[
  * `androidIcons` only exists for MainTabs.native's signature; unused here.
  */
 export function MainTabs(_props: MainTabsProps) {
+  const { colors: themeColors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: themeColors.primary,
+        tabBarInactiveTintColor: themeColors.textMuted,
       }}
     >
       <Tab.Screen
@@ -123,7 +122,7 @@ export function MainTabs(_props: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.BOOKINGS}
-        component={BookingsTab}
+        component={BookingsScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name={TAB_ICONS.Bookings} size={size} color={color} />

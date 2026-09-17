@@ -6,9 +6,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/GlassSurface';
+import { useTheme } from '@/context/ThemeContext';
 import { useSetDrawerSwipeEnabled } from '@/navigation/DrawerSwipeContext';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
-import { colors, radii, shadows, spacing, typography } from '@/theme';
+import { radii, shadows, spacing, typography } from '@/theme';
 
 export type HeaderProps = {
   title: string;
@@ -49,6 +50,7 @@ export function Header({ title, onBackPress, onMenuPress, rightElement }: Header
   const insets = useSafeAreaInsets();
   const { topClearance } = useTabBarLayout();
   const setDrawerSwipeEnabled = useSetDrawerSwipeEnabled();
+  const { colors: themeColors } = useTheme();
 
   // A back button means native-stack's own swipe-back gesture lives on this
   // screen's left edge too — sharing it with the Drawer's swipe-to-open
@@ -75,8 +77,11 @@ export function Header({ title, onBackPress, onMenuPress, rightElement }: Header
               hitSlop={8}
               onPress={onBackPress}
             >
-              <GlassSurface style={styles.backButton} isInteractive>
-                <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+              <GlassSurface
+                style={[styles.backButton, { borderColor: themeColors.surfaceMedium }]}
+                isInteractive
+              >
+                <Ionicons name="chevron-back" size={18} color={themeColors.textPrimary} />
               </GlassSurface>
             </Pressable>
           ) : onMenuPress ? (
@@ -86,15 +91,18 @@ export function Header({ title, onBackPress, onMenuPress, rightElement }: Header
               hitSlop={8}
               onPress={onMenuPress}
             >
-              <GlassSurface style={styles.backButton} isInteractive>
-                <Ionicons name="menu" size={18} color={colors.textPrimary} />
+              <GlassSurface
+                style={[styles.backButton, { borderColor: themeColors.surfaceMedium }]}
+                isInteractive
+              >
+                <Ionicons name="menu" size={18} color={themeColors.textPrimary} />
               </GlassSurface>
             </Pressable>
           ) : null}
         </View>
 
-        <GlassSurface style={styles.titlePill}>
-          <Text style={[typography.h4, styles.title]} numberOfLines={1}>
+        <GlassSurface style={[styles.titlePill, { borderColor: themeColors.surfaceMedium }]}>
+          <Text style={[typography.h4, { color: themeColors.textPrimary }]} numberOfLines={1}>
             {title}
           </Text>
         </GlassSurface>
@@ -136,7 +144,6 @@ const styles = StyleSheet.create({
     // The glass fill alone is nearly invisible with nothing behind it to
     // blur — a rim keeps each piece readable as its own shape regardless.
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.surfaceMedium,
     ...shadows.card,
   },
   titlePill: {
@@ -147,10 +154,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.surfaceMedium,
     ...shadows.card,
-  },
-  title: {
-    color: colors.textPrimary,
   },
 });

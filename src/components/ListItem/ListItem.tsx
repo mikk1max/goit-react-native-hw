@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { radii, spacing, typography } from '@/theme';
 
 export type ListItemProps = {
   title: string;
@@ -21,6 +22,8 @@ export function ListItem({
   showChevron = false,
   onPress,
 }: ListItemProps) {
+  const { colors: themeColors } = useTheme();
+
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
@@ -31,17 +34,19 @@ export function ListItem({
       {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
 
       <View style={styles.content}>
-        <Text style={[typography.bodyM, styles.title]} numberOfLines={1}>
+        <Text style={[typography.bodyM, { color: themeColors.textPrimary }]} numberOfLines={1}>
           {title}
         </Text>
         {subtitle ? (
-          <Text style={[typography.bodyS, styles.subtitle]} numberOfLines={1}>
+          <Text style={[typography.bodyS, { color: themeColors.textMuted }]} numberOfLines={1}>
             {subtitle}
           </Text>
         ) : null}
       </View>
 
-      {showChevron ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null}
+      {showChevron ? (
+        <Ionicons name="chevron-forward" size={16} color={themeColors.textMuted} />
+      ) : null}
     </Pressable>
   );
 }
@@ -62,11 +67,5 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     gap: spacing.xxs,
-  },
-  title: {
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    color: colors.textMuted,
   },
 });

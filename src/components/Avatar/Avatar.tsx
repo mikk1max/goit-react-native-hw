@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, StyleSheet, View } from 'react-native';
 
-import { colors } from '@/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 export type AvatarSize = 'sm' | 'lg';
 
@@ -21,11 +21,8 @@ const DIMENSIONS: Record<AvatarSize, number> = {
 /** Figma's Avatar component always uses a 0.4 corner-radius-to-size ratio (a "squircle"), not a circle. */
 const CORNER_RATIO = 0.4;
 
-export function Avatar({
-  imageUrl,
-  size = 'sm',
-  backgroundColor = colors.primaryLightest,
-}: AvatarProps) {
+export function Avatar({ imageUrl, size = 'sm', backgroundColor }: AvatarProps) {
+  const { colors: themeColors } = useTheme();
   const dimension = DIMENSIONS[size];
   const borderRadius = dimension * CORNER_RATIO;
 
@@ -33,7 +30,12 @@ export function Avatar({
     <View
       style={[
         styles.container,
-        { width: dimension, height: dimension, borderRadius, backgroundColor },
+        {
+          width: dimension,
+          height: dimension,
+          borderRadius,
+          backgroundColor: backgroundColor ?? themeColors.primaryLightest,
+        },
       ]}
     >
       {imageUrl ? (
@@ -43,7 +45,7 @@ export function Avatar({
           resizeMode="cover"
         />
       ) : (
-        <Ionicons name="person" size={dimension * 0.55} color={colors.primary} />
+        <Ionicons name="person" size={dimension * 0.55} color={themeColors.primary} />
       )}
     </View>
   );

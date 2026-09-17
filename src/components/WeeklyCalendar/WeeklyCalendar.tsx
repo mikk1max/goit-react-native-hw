@@ -1,10 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { radii, spacing, typography } from '@/theme';
 
 export type WeeklyCalendarDay = {
   weekDay: string;
   date: number;
+  /** Already at capacity (see MAX_BOOKINGS_PER_DAY) — shown dimmed and unpickable. */
+  disabled?: boolean;
 };
 
 export type WeeklyCalendarProps = {
@@ -15,6 +18,8 @@ export type WeeklyCalendarProps = {
 
 /** Date-input row for picking an appointment day — "Availability" on Pro profile. */
 export function WeeklyCalendar({ days, selectedIndex, onSelect }: WeeklyCalendarProps) {
+  const { colors: themeColors } = useTheme();
+
   return (
     <View style={styles.row}>
       {days.map((day, index) => {
@@ -23,14 +28,29 @@ export function WeeklyCalendar({ days, selectedIndex, onSelect }: WeeklyCalendar
           <Pressable
             key={`${day.weekDay}-${day.date}`}
             accessibilityRole="button"
-            accessibilityState={{ selected }}
+            accessibilityState={{ selected, disabled: day.disabled }}
+            disabled={day.disabled}
             onPress={() => onSelect?.(index)}
-            style={[styles.day, selected && styles.daySelected]}
+            style={[
+              styles.day,
+              selected && { backgroundColor: themeColors.primary },
+              day.disabled && styles.dayDisabled,
+            ]}
           >
-            <Text style={[typography.captionM, selected ? styles.weekDaySelected : styles.weekDay]}>
+            <Text
+              style={[
+                typography.captionM,
+                { color: selected ? themeColors.primaryLight : themeColors.textPlaceholder },
+              ]}
+            >
               {day.weekDay}
             </Text>
-            <Text style={[typography.bodyL, selected ? styles.dateSelected : styles.date]}>
+            <Text
+              style={[
+                typography.bodyL,
+                { color: selected ? themeColors.white : themeColors.textTertiary },
+              ]}
+            >
               {day.date}
             </Text>
           </Pressable>
@@ -54,19 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
-  daySelected: {
-    backgroundColor: colors.primary,
-  },
-  weekDay: {
-    color: colors.textPlaceholder,
-  },
-  weekDaySelected: {
-    color: colors.primaryLight,
-  },
-  date: {
-    color: colors.textTertiary,
-  },
-  dateSelected: {
-    color: colors.white,
+  dayDisabled: {
+    opacity: 0.35,
   },
 });

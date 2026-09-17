@@ -8,6 +8,7 @@ export const SCREENS = {
   MAIN: 'Main',
   HELP: 'Help',
   CONTACT: 'Contact',
+  APPEARANCE: 'Appearance',
   // Tabs (src/navigation/MainTabs.native.tsx / .web.tsx)
   HOME: 'Home',
   CATEGORIES: 'Categories',
@@ -17,6 +18,7 @@ export const SCREENS = {
   // Home stack (pushed on top of the Home tab)
   HOME_MAIN: 'HomeMain',
   PRO_DETAILS: 'ProDetails',
+  URGENT_BOOKING: 'UrgentBooking',
   // Categories stack (pushed on top of the Categories/Search tab)
   CATEGORIES_MAIN: 'CategoriesMain',
   CATEGORY_DETAILS: 'CategoryDetails',

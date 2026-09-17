@@ -7,11 +7,12 @@ import { fetchProviderById } from '@/api/providers';
 import { Button } from '@/components/Button';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProviderProfile } from '@/components/ProviderProfile';
+import { useTheme } from '@/context/ThemeContext';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { HomeStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 
 type ProDetailsRoute = RouteProp<HomeStackParamList, 'ProDetails'>;
 
@@ -21,6 +22,7 @@ export function ProDetailsScreen() {
   const { contentWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
+  const { colors: themeColors } = useTheme();
 
   const proId = route.params?.proId;
   // proId can be missing (a screen reached with no params) — reject before
@@ -37,13 +39,17 @@ export function ProDetailsScreen() {
   // "no provider matches" error here — same explicit dead end, not a crash.
   if (loading || error || !pro) {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
         <View style={[styles.centered, { paddingTop: headerClearance }]}>
           {loading ? (
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={themeColors.primary} />
           ) : (
             <>
-              <Text style={[typography.bodyM, styles.errorText]}>{error ?? 'Pro not found.'}</Text>
+              <Text
+                style={[typography.bodyM, { color: themeColors.textMuted, textAlign: 'center' }]}
+              >
+                {error ?? 'Pro not found.'}
+              </Text>
               <Button title="Try again" onPress={retry} fullWidth={false} />
             </>
           )}
@@ -54,19 +60,18 @@ export function ProDetailsScreen() {
   }
 
   return (
-    <View style={styles.screen}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+    <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomClearance + spacing.xl },
+        ]}
+      >
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <ProviderProfile provider={pro} />
         </View>
       </ScrollView>
-
-      {/* Sits outside the ScrollView, so it doesn't get the tab bar's automatic
-          content-inset — needs its own clearance or it renders unreachable
-          underneath the floating/translucent tab bar. */}
-      <View style={[styles.footer, { paddingBottom: bottomClearance + spacing.md }]}>
-        <Button title="Book appointment" />
-      </View>
 
       <Header title="Pro profile" onBackPress={() => navigation.goBack()} />
     </View>
@@ -76,7 +81,6 @@ export function ProDetailsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   scroll: {
     flex: 1,
@@ -93,19 +97,11 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingHorizontal: spacing.md,
   },
-  footer: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.xl,
-  },
-  errorText: {
-    color: colors.textMuted,
-    textAlign: 'center',
   },
 });

@@ -2,6 +2,7 @@
 export type HomeStackParamList = {
   HomeMain: undefined;
   ProDetails: { proId: string } | undefined;
+  UrgentBooking: undefined;
 };
 
 /** Screens pushed on top of the Categories/Search tab. */
@@ -20,9 +21,10 @@ export type RootTabParamList = {
   Profile: undefined;
 };
 
-/** The side Drawer wrapping the whole tab bar — Main is the 5-tab app, Help/Contact are drawer-only screens. */
+/** The side Drawer wrapping the whole tab bar — Main is the 5-tab app, Help/Contact/Appearance are drawer-only screens. */
 export type RootDrawerParamList = {
   Main: undefined;
   Help: undefined;
   Contact: undefined;
+  Appearance: undefined;
 };

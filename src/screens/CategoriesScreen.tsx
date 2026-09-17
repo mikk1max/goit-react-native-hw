@@ -8,18 +8,20 @@ import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ListItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/SearchBar';
 import { TradeIcon } from '@/components/TradeIcon';
+import { useTheme } from '@/context/ThemeContext';
 import { categories } from '@/data/mockData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SCREENS } from '@/navigation/screens';
 import type { CategoriesStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 
 export function CategoriesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CategoriesStackParamList>>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
+  const { colors: themeColors } = useTheme();
   const [query, setQuery] = useState('');
   const normalizedQuery = query.trim().toLowerCase();
   const filteredCategories = categories.filter((category) =>
@@ -27,7 +29,7 @@ export function CategoriesScreen() {
   );
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -37,10 +39,10 @@ export function CategoriesScreen() {
         <View style={[styles.content, { width: contentWidth, paddingTop: headerClearance }]}>
           <SearchBar value={query} onChangeText={setQuery} placeholder="Search categories" />
 
-          <Text style={[typography.sectionTitle, styles.sectionTitle]}>All categories</Text>
+          <Text style={[typography.sectionTitle, { color: themeColors.text }]}>All categories</Text>
 
           {filteredCategories.length === 0 ? (
-            <Text style={[typography.bodyM, styles.emptyState]}>
+            <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>
               No categories match your search.
             </Text>
           ) : (
@@ -49,7 +51,7 @@ export function CategoriesScreen() {
                 <View key={category.id} style={{ width: cardWidth }}>
                   <ListItem
                     title={category.label}
-                    leftIcon={<TradeIcon name={category.icon} color={colors.textSecondary} />}
+                    leftIcon={<TradeIcon name={category.icon} color={themeColors.textSecondary} />}
                     showChevron
                     onPress={() =>
                       navigation.navigate(SCREENS.CATEGORY_DETAILS, {
@@ -76,7 +78,6 @@ export function CategoriesScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   scrollContent: {
     alignItems: 'center',
@@ -84,12 +85,6 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.md,
     paddingHorizontal: spacing.md,
-  },
-  sectionTitle: {
-    color: colors.text,
-  },
-  emptyState: {
-    color: colors.textMuted,
   },
   grid: {
     flexDirection: 'row',

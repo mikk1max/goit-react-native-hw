@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { TradeIcon, type TradeIconName } from '@/components/TradeIcon';
-import { colors, radii, spacing, typography } from '@/theme';
+import { useTheme } from '@/context/ThemeContext';
+import { radii, spacing, typography } from '@/theme';
 
 export type TagProps = {
   label: string;
@@ -12,14 +13,18 @@ export type TagProps = {
 };
 
 export function Tag({ label, icon, selected = false, onPress }: TagProps) {
-  const foregroundColor = selected ? colors.white : colors.primary;
+  const { colors: themeColors } = useTheme();
+  const foregroundColor = selected ? themeColors.white : themeColors.primary;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.base, selected ? styles.selected : styles.unselected]}
+      style={[
+        styles.base,
+        { backgroundColor: selected ? themeColors.primary : themeColors.primaryLightest },
+      ]}
     >
       {icon ? <TradeIcon name={icon} size={12} color={foregroundColor} /> : null}
       <Text style={[typography.captionM, { color: foregroundColor }]}>{label}</Text>
@@ -35,11 +40,5 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xxs + 2,
-  },
-  selected: {
-    backgroundColor: colors.primary,
-  },
-  unselected: {
-    backgroundColor: colors.primaryLightest,
   },
 });

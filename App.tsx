@@ -10,9 +10,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider as ReduxProvider } from 'react-redux';
 
+import { ThemeProvider } from '@/context/ThemeContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { TAB_ANDROID_ICON_NAMES, useAndroidTabIcons } from '@/navigation/useAndroidTabIcons';
+import { store } from '@/store/store';
 import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -38,14 +41,18 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <View style={styles.root} onLayout={onLayoutRootView}>
-          <RootNavigator androidIcons={androidTabIcons} />
-          <StatusBar style="dark" />
-        </View>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ReduxProvider store={store}>
+      <ThemeProvider>
+        <GestureHandlerRootView style={styles.root}>
+          <SafeAreaProvider>
+            <View style={styles.root} onLayout={onLayoutRootView}>
+              <RootNavigator androidIcons={androidTabIcons} />
+              <StatusBar style="dark" />
+            </View>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    </ReduxProvider>
   );
 }
 

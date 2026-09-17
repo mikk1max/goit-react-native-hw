@@ -3,9 +3,10 @@ import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
+import { useTheme } from '@/context/ThemeContext';
 import { SCREENS } from '@/navigation/screens';
 import type { RootDrawerParamList } from '@/navigation/types';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 
 const FAQS = [
   {
@@ -27,15 +28,18 @@ const FAQS = [
 export function HelpScreen() {
   const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
   const headerClearance = useFloatingHeaderClearance();
+  const { colors: themeColors } = useTheme();
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { paddingTop: headerClearance }]}>
           {FAQS.map((faq) => (
             <View key={faq.question} style={styles.item}>
-              <Text style={[typography.sectionTitle, styles.question]}>{faq.question}</Text>
-              <Text style={[typography.bodyM, styles.answer]}>{faq.answer}</Text>
+              <Text style={[typography.sectionTitle, { color: themeColors.text }]}>
+                {faq.question}
+              </Text>
+              <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>{faq.answer}</Text>
             </View>
           ))}
         </View>
@@ -49,7 +53,6 @@ export function HelpScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   scrollContent: {
     alignItems: 'center',
@@ -63,11 +66,5 @@ const styles = StyleSheet.create({
   },
   item: {
     gap: spacing.xxs,
-  },
-  question: {
-    color: colors.text,
-  },
-  answer: {
-    color: colors.textMuted,
   },
 });

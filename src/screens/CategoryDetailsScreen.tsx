@@ -8,12 +8,13 @@ import { fetchProvidersByCategory } from '@/api/providers';
 import { Button } from '@/components/Button';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
+import { useTheme } from '@/context/ThemeContext';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SCREENS } from '@/navigation/screens';
 import type { CategoriesStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 
 type CategoryDetailsRoute = RouteProp<CategoriesStackParamList, 'CategoryDetails'>;
 type CategoriesStackNav = NativeStackNavigationProp<CategoriesStackParamList>;
@@ -33,19 +34,22 @@ export function CategoryDetailsScreen() {
   const { contentWidth, cardWidth, columns } = useResponsiveLayout();
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
+  const { colors: themeColors } = useTheme();
 
   const fetchThis = useCallback(() => fetchProvidersByCategory(categoryId), [categoryId]);
   const { data: providers = [], loading, error, retry } = useAsyncData(fetchThis);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       {loading ? (
         <View style={[styles.centered, { paddingTop: headerClearance }]}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={themeColors.primary} />
         </View>
       ) : error ? (
         <View style={[styles.centered, { paddingTop: headerClearance }]}>
-          <Text style={[typography.bodyM, styles.errorText]}>{error}</Text>
+          <Text style={[typography.bodyM, { color: themeColors.textMuted, textAlign: 'center' }]}>
+            {error}
+          </Text>
           <Button title="Try again" onPress={retry} fullWidth={false} />
         </View>
       ) : (
@@ -62,14 +66,18 @@ export function CategoryDetailsScreen() {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <View style={styles.listHeader}>
-              <Text style={[typography.sectionTitle, styles.sectionTitle]}>
+              <Text style={[typography.sectionTitle, { color: themeColors.text }]}>
                 Available {categoryLabel.toLowerCase()} pros
               </Text>
-              <Text style={[typography.bodyS, styles.subtitle]}>Live directory data.</Text>
+              <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
+                Live directory data.
+              </Text>
             </View>
           }
           ListEmptyComponent={
-            <Text style={[typography.bodyM, styles.subtitle]}>No providers found.</Text>
+            <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>
+              No providers found.
+            </Text>
           }
           renderItem={({ item }) => (
             <View style={{ width: cardWidth }}>
@@ -95,7 +103,6 @@ export function CategoryDetailsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   centered: {
     flex: 1,
@@ -104,10 +111,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.xl,
   },
-  errorText: {
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
   listContent: {
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
@@ -115,12 +118,6 @@ const styles = StyleSheet.create({
   listHeader: {
     gap: spacing.xxs,
     marginBottom: spacing.sm,
-  },
-  sectionTitle: {
-    color: colors.text,
-  },
-  subtitle: {
-    color: colors.textMuted,
   },
   row: {
     gap: spacing.sm,
