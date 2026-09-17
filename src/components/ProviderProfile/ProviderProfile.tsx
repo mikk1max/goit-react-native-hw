@@ -38,15 +38,16 @@ export function ProviderProfile({ provider }: ProviderProfileProps) {
   const bookings = useAppSelector((state) => state.bookings);
   const dispatch = useAppDispatch();
 
-  // A day fills up once MAX_BOOKINGS_PER_DAY bookings (any provider) already
-  // sit on it — default to today, or the soonest day after it with room.
+  // This pro's day fills up once MAX_BOOKINGS_PER_DAY of THEIR bookings
+  // already sit on it — default to today, or the soonest day after it with
+  // room on their calendar specifically (other pros' bookings don't count).
   const [selectedDateKey, setSelectedDateKey] = useState(
-    () => findAvailableDate(bookings, todayDateKey()) ?? todayDateKey(),
+    () => findAvailableDate(bookings, provider.id, todayDateKey()) ?? todayDateKey(),
   );
   const [confirmedDateKey, setConfirmedDateKey] = useState<string | null>(null);
 
   const isDateDisabled = (dateKey: string) =>
-    countBookingsOnDate(bookings, dateKey) >= MAX_BOOKINGS_PER_DAY;
+    countBookingsOnDate(bookings, provider.id, dateKey) >= MAX_BOOKINGS_PER_DAY;
   const selectedDayDisabled = isDateDisabled(selectedDateKey);
 
   const book = () => {

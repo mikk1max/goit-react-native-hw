@@ -3,7 +3,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 import { addDays } from '@/data/mockData';
 
-/** A day fills up once it holds this many bookings, across every provider. */
+/** A given pro's day fills up once it holds this many of THEIR bookings — a customer can still book as many different pros that same day as they like. */
 export const MAX_BOOKINGS_PER_DAY = 3;
 const AVAILABILITY_SEARCH_DAYS = 21;
 
@@ -47,16 +47,26 @@ const bookingsSlice = createSlice({
 export const { addBooking, removeBooking, updateBookingDate } = bookingsSlice.actions;
 export default bookingsSlice.reducer;
 
-/** How many bookings (any provider) already sit on `dateKey` — the Availability picker disables full days at MAX_BOOKINGS_PER_DAY. */
-export function countBookingsOnDate(bookings: Booking[], dateKey: string): number {
-  return bookings.filter((booking) => booking.dateKey === dateKey).length;
+/** How many bookings `providerId` already has on `dateKey` — the Availability picker disables that pro's full days at MAX_BOOKINGS_PER_DAY. */
+export function countBookingsOnDate(
+  bookings: Booking[],
+  providerId: string,
+  dateKey: string,
+): number {
+  return bookings.filter(
+    (booking) => booking.providerId === providerId && booking.dateKey === dateKey,
+  ).length;
 }
 
-/** `fromDateKey` itself if it still has room, otherwise the soonest day after it that does — null if every day in the search window is full. */
-export function findAvailableDate(bookings: Booking[], fromDateKey: string): string | null {
+/** `fromDateKey` itself if `providerId` still has room on it, otherwise the soonest day after it that does — null if every day in the search window is full for them. */
+export function findAvailableDate(
+  bookings: Booking[],
+  providerId: string,
+  fromDateKey: string,
+): string | null {
   for (let offset = 0; offset <= AVAILABILITY_SEARCH_DAYS; offset += 1) {
     const candidate = offset === 0 ? fromDateKey : addDays(fromDateKey, offset);
-    if (countBookingsOnDate(bookings, candidate) < MAX_BOOKINGS_PER_DAY) {
+    if (countBookingsOnDate(bookings, providerId, candidate) < MAX_BOOKINGS_PER_DAY) {
       return candidate;
     }
   }

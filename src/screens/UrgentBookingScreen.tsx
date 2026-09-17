@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import type { ApiProvider } from '@/api/providers';
 import { fetchProviders } from '@/api/providers';
@@ -34,12 +35,14 @@ export function UrgentBookingScreen() {
   const [bookedProvider, setBookedProvider] = useState<ApiProvider | null>(null);
 
   const today = todayDateKey();
-  const todayIsFull = countBookingsOnDate(bookings, today) >= MAX_BOOKINGS_PER_DAY;
+  // Each pro caps out at MAX_BOOKINGS_PER_DAY of their OWN bookings for
+  // today — that's the only thing that hides them here; it says nothing
+  // about anyone else, so no list-wide "today is full" banner applies.
+  const isFullToday = (pro: ApiProvider) =>
+    countBookingsOnDate(bookings, pro.id, today) >= MAX_BOOKINGS_PER_DAY;
+  const visiblePros = pros.filter((pro) => !isFullToday(pro));
 
   const bookNow = (pro: ApiProvider) => {
-    if (todayIsFull) {
-      return;
-    }
     // A stray tap in a scrolling list shouldn't book someone outright — this
     // is the one extra step between "tapped a row" and "actually booked".
     Alert.alert(`Book ${pro.name}?`, `${pro.role} · today`, [
@@ -76,35 +79,39 @@ export function UrgentBookingScreen() {
           <Button title="Try again" onPress={retry} fullWidth={false} />
         </View>
       ) : (
-        <FlatList
+        <Animated.FlatList<ApiProvider>
           contentContainerStyle={[
             styles.list,
             { paddingTop: headerClearance, paddingBottom: bottomClearance + spacing.xl },
           ]}
-          data={pros}
+          data={visiblePros}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
-            <View style={styles.listHeader}>
-              <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>
-                Tap a pro to book them for today
-              </Text>
-              {todayIsFull ? (
-                <Text style={[typography.bodyS, { color: themeColors.urgent }]}>
-                  Today is fully booked — try Bookings to pick another day instead.
-                </Text>
-              ) : null}
-            </View>
+            <Text
+              style={[
+                typography.sectionTitle,
+                styles.listHeader,
+                { color: themeColors.textPrimary },
+              ]}
+            >
+              Tap a pro to book them for today
+            </Text>
           }
-          renderItem={({ item }) => (
-            <View style={{ width: cardWidth }}>
+          ListEmptyComponent={
+            <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>
+              Every pro is fully booked for today — try Bookings to pick another day.
+            </Text>
+          }
+          renderItem={({ item: pro }) => (
+            <Animated.View exiting={FadeOut} layout={LinearTransition} style={{ width: cardWidth }}>
               <ProCard
-                name={item.name}
-                role={item.role}
-                rating={item.rating}
-                imageUrl={item.imageUrl}
-                onPress={todayIsFull ? undefined : () => bookNow(item)}
+                name={pro.name}
+                role={pro.role}
+                rating={pro.rating}
+                imageUrl={pro.imageUrl}
+                onPress={() => bookNow(pro)}
               />
-            </View>
+            </Animated.View>
           )}
         />
       )}

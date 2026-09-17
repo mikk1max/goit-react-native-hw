@@ -51,11 +51,13 @@ export function BookingsScreen() {
     ]);
   };
 
-  // A day counts against the limit for every OTHER booking, but not for the
-  // one being edited — otherwise its own current day would show as full.
+  // A day counts against the same pro's limit for every OTHER booking of
+  // theirs, but not for the one being edited — otherwise its own current day
+  // would show as full, and other pros' bookings never count against it.
   const isDateDisabledFor = (booking: Booking) => (dateKey: string) =>
     countBookingsOnDate(
       bookings.filter((other) => other.id !== booking.id),
+      booking.providerId,
       dateKey,
     ) >= MAX_BOOKINGS_PER_DAY;
 
