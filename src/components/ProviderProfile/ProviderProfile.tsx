@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import type { ApiProvider } from '@/api/providers';
 import { Avatar } from '@/components/Avatar';
@@ -25,6 +26,9 @@ import { spacing, typography } from '@/theme';
 export type ProviderProfileProps = {
   provider: ApiProvider;
 };
+
+/** Each section fades/slides in a little after the one before it, instead of the whole profile appearing at once. */
+const SECTION_STAGGER_MS = 80;
 
 /**
  * About/Pricing/Availability/Reviews body — shared by Home's Pro profile
@@ -68,47 +72,70 @@ export function ProviderProfile({ provider }: ProviderProfileProps) {
 
   return (
     <>
-      <View style={styles.profileHeader}>
+      <Animated.View
+        entering={FadeInDown.delay(0 * SECTION_STAGGER_MS).duration(300)}
+        style={styles.profileHeader}
+      >
         <Avatar size="lg" imageUrl={provider.imageUrl} />
         <Text style={[typography.h1, { color: themeColors.textPrimary }]}>{provider.name}</Text>
         <StarRating rating={provider.rating} />
         <Tag label={provider.role} />
-      </View>
+      </Animated.View>
 
-      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>About</Text>
-      <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>{provider.about}</Text>
+      <Animated.View
+        entering={FadeInDown.delay(1 * SECTION_STAGGER_MS).duration(300)}
+        style={styles.section}
+      >
+        <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>About</Text>
+        <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>{provider.about}</Text>
+      </Animated.View>
 
-      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>Pricing</Text>
-      <View style={styles.grid}>
-        {provider.pricing.map((item) => (
-          <View key={item.id} style={{ width: cardWidth }}>
-            <ListItem title={item.title} subtitle={item.subtitle} />
-          </View>
-        ))}
-      </View>
+      <Animated.View
+        entering={FadeInDown.delay(2 * SECTION_STAGGER_MS).duration(300)}
+        style={styles.section}
+      >
+        <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>Pricing</Text>
+        <View style={styles.grid}>
+          {provider.pricing.map((item) => (
+            <View key={item.id} style={{ width: cardWidth }}>
+              <ListItem title={item.title} subtitle={item.subtitle} />
+            </View>
+          ))}
+        </View>
+      </Animated.View>
 
-      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>
-        Availability
-      </Text>
-      <AvailabilityCalendar
-        selectedDateKey={selectedDateKey}
-        onSelectDateKey={setSelectedDateKey}
-        isDateDisabled={isDateDisabled}
-      />
+      <Animated.View
+        entering={FadeInDown.delay(3 * SECTION_STAGGER_MS).duration(300)}
+        style={styles.section}
+      >
+        <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>
+          Availability
+        </Text>
+        <AvailabilityCalendar
+          selectedDateKey={selectedDateKey}
+          onSelectDateKey={setSelectedDateKey}
+          isDateDisabled={isDateDisabled}
+        />
+      </Animated.View>
 
-      <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>Reviews</Text>
-      <View style={styles.grid}>
-        {provider.reviews.map((review) => (
-          <View key={review.id} style={{ width: cardWidth }}>
-            <ProCard
-              name={review.name}
-              role={review.comment}
-              rating={review.rating}
-              imageUrl={review.imageUrl}
-            />
-          </View>
-        ))}
-      </View>
+      <Animated.View
+        entering={FadeInDown.delay(4 * SECTION_STAGGER_MS).duration(300)}
+        style={styles.section}
+      >
+        <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>Reviews</Text>
+        <View style={styles.grid}>
+          {provider.reviews.map((review) => (
+            <View key={review.id} style={{ width: cardWidth }}>
+              <ProCard
+                name={review.name}
+                role={review.comment}
+                rating={review.rating}
+                imageUrl={review.imageUrl}
+              />
+            </View>
+          ))}
+        </View>
+      </Animated.View>
 
       <Button title="Book appointment" onPress={book} disabled={selectedDayDisabled} />
 
@@ -126,6 +153,9 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  section: {
+    gap: spacing.lg,
   },
   grid: {
     flexDirection: 'row',

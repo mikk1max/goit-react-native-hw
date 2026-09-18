@@ -1,10 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DrawerActions } from '@react-navigation/routers';
-import { useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import type { ApiProvider } from '@/api/providers';
 import { fetchProviders } from '@/api/providers';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
@@ -24,6 +25,42 @@ import { radii, spacing, typography } from '@/theme';
 /** "Recommended" means top-rated — anything below this doesn't make the cut. */
 const RECOMMENDED_MIN_RATING = 4.8;
 
+type ProGridItemProps = {
+  pro: ApiProvider;
+  width: number;
+  onPress: (proId: string) => void;
+};
+
+/**
+ * One tile of the Recommended-pros grid, split out and memoed so typing in
+ * the search box above — which re-renders HomeScreen on every keystroke —
+ * doesn't also re-render every card in the grid, only the ones that actually
+ * entered/left the filtered list. Needs `onPress` to be a stable reference
+ * (see `goToProDetails` below) or React.memo has nothing to compare against.
+ */
+const ProGridItem = memo(function ProGridItem({ pro, width, onPress }: ProGridItemProps) {
+  // Dev-only proof this memoization works: type in the search box and watch
+  // Metro's console — only cards entering/leaving the filtered list should
+  // log, not the whole grid on every keystroke.
+  if (__DEV__) {
+    console.log('[ProGridItem] render', pro.name);
+  }
+
+  const handlePress = useCallback(() => onPress(pro.id), [onPress, pro.id]);
+
+  return (
+    <View style={{ width }}>
+      <ProCard
+        name={pro.name}
+        role={pro.role}
+        rating={pro.rating}
+        imageUrl={pro.imageUrl}
+        onPress={handlePress}
+      />
+    </View>
+  );
+});
+
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { contentWidth, cardWidth } = useResponsiveLayout();
@@ -37,15 +74,29 @@ export function HomeScreen() {
   const { data: pros = [], loading, error, retry } = useAsyncData(fetchProviders);
 
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredPros = pros.filter((pro) => {
-    const isRecommended = pro.rating >= RECOMMENDED_MIN_RATING;
-    const matchesCategory = !selectedCategoryId || pro.categoryId === selectedCategoryId;
-    const matchesQuery =
-      !normalizedQuery ||
-      pro.name.toLowerCase().includes(normalizedQuery) ||
-      pro.role.toLowerCase().includes(normalizedQuery);
-    return isRecommended && matchesCategory && matchesQuery;
-  });
+  // Memoized so this re-filter only runs when the pros list, the category
+  // filter, or the search text actually change — not on every HomeScreen
+  // re-render (e.g. a theme change while this screen sits in the background).
+  const filteredPros = useMemo(
+    () =>
+      pros.filter((pro) => {
+        const isRecommended = pro.rating >= RECOMMENDED_MIN_RATING;
+        const matchesCategory = !selectedCategoryId || pro.categoryId === selectedCategoryId;
+        const matchesQuery =
+          !normalizedQuery ||
+          pro.name.toLowerCase().includes(normalizedQuery) ||
+          pro.role.toLowerCase().includes(normalizedQuery);
+        return isRecommended && matchesCategory && matchesQuery;
+      }),
+    [pros, selectedCategoryId, normalizedQuery],
+  );
+
+  // Stable across re-renders so ProGridItem's React.memo can actually skip
+  // re-rendering cards — an inline arrow recreated per render would defeat it.
+  const goToProDetails = useCallback(
+    (proId: string) => navigation.navigate(SCREENS.PRO_DETAILS, { proId }),
+    [navigation],
+  );
 
   return (
     <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
@@ -116,15 +167,7 @@ export function HomeScreen() {
           ) : (
             <View style={styles.grid}>
               {filteredPros.map((pro) => (
-                <View key={pro.id} style={{ width: cardWidth }}>
-                  <ProCard
-                    name={pro.name}
-                    role={pro.role}
-                    rating={pro.rating}
-                    imageUrl={pro.imageUrl}
-                    onPress={() => navigation.navigate(SCREENS.PRO_DETAILS, { proId: pro.id })}
-                  />
-                </View>
+                <ProGridItem key={pro.id} pro={pro} width={cardWidth} onPress={goToProDetails} />
               ))}
             </View>
           )}

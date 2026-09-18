@@ -263,6 +263,89 @@ no branching needed at the usage site. `Header` uses it as three independent
 floating pieces (back button, title, right slot) rather than one shared
 background, matching how iOS nav bars typically separate these elements.
 
+## Performance
+
+cross_assignment_7: an animation pass, a re-render audit, and a real
+bundle-size measurement (not a guess) — all three tied to something that
+was actually costing the app time or bytes, not added for their own sake.
+
+**Animation — Reanimated (`useSharedValue` / `useAnimatedStyle`)**
+
+- `BookingsScreen`'s edit dropdown opens flush under the exact booking tile
+  that was tapped (each row measures itself via a ref and reports its own
+  bottom edge, not the touch point) with a short, understated fade + a few
+  pixels of drop — `menuProgress`, a shared value, is driven by `withTiming`
+  in a `useEffect` keyed on `menuTarget`, and `useAnimatedStyle` maps it onto
+  the menu's `opacity`/`translateY`. The row's own edit icon morphs between a
+  pencil and a close (✕) glyph while its dropdown is open — two
+  `Ionicons` layers cross-fading and counter-rotating on another shared value
+  — the literal `useSharedValue`/`useAnimatedStyle` pairing the assignment
+  asks for, twice over.
+- `ProviderProfile` staggers each section (header, About, Pricing,
+  Availability, Reviews) in with `FadeInDown` on mount instead of showing the
+  whole profile at once.
+- `UrgentBookingScreen`'s list also leans on Reanimated (`entering`/
+  `exiting`/`layout` shorthand — `FadeOut`, `LinearTransition`) so a pro who
+  just took their last slot for the day animates out of the list instead of
+  vanishing outright.
+
+**Re-render optimization — `memo` / `useMemo` / `useCallback`**
+
+- Target: Home's Recommended-pros grid. Before this pass, every `ProCard` in
+  the grid re-rendered on every keystroke in the search box, because
+  `HomeScreen` re-renders per keystroke and was creating a brand new
+  `onPress` closure (and element) for every card, every time.
+- `ProCard` (`src/components/ProCard/ProCard.tsx`) is now wrapped in
+  `React.memo`.
+- `HomeScreen` extracts a memoized `ProGridItem` that takes a _stable_
+  `onPress` and curries it to that pro's own id via `useCallback` — the
+  actual navigation handler (`goToProDetails`) is itself `useCallback`'d in
+  `HomeScreen` so its reference survives re-renders; without a stable
+  callback, `React.memo` on the card underneath has nothing to compare
+  against and re-renders anyway.
+- `filteredPros` is computed via `useMemo`, keyed on `[pros, selectedCategoryId,
+normalizedQuery]`, so the filter doesn't redo its work on re-renders that
+  touch none of those (e.g. a theme change while Home sits in the
+  background tab).
+- **Verified via logs**: `ProGridItem` logs
+  `console.log('[ProGridItem] render', pro.name)` behind `if (__DEV__)`.
+  Before the fix, typing in the search box logged every visible card on
+  every keystroke; after it, only the cards actually entering or leaving the
+  filtered list log.
+
+**Dependency & bundle audit**
+
+- No `moment`/`lodash`-style bloat in `package.json` to begin with, so the
+  real finding came from measuring the actual exported bundle
+  (`npx expo export --platform web`) rather than guessing from the
+  dependency list.
+- `@expo/vector-icons`'s barrel import (`import { Ionicons } from
+'@expo/vector-icons'`) bundles font assets for _every_ icon family it
+  re-exports — AntDesign, three FontAwesome variants,
+  MaterialCommunityIcons (1.3MB on its own), etc. — even though this app
+  only ever renders `Ionicons`. All 16 call sites now use the
+  family-specific deep import (`import Ionicons from
+'@expo/vector-icons/Ionicons'`), which is Expo's own documented fix for
+  this exact problem.
+- **Measured with `expo export`'s own bundle report**, same platform, same
+  machine, before vs. after that one import change:
+
+  |        | JS bundle | Icon font assets                 |
+  | ------ | --------- | -------------------------------- |
+  | Before | 2.6 MB    | 18 families bundled, only 1 used |
+  | After  | 2.2 MB    | 1 family (Ionicons), 390 KB      |
+
+  ~400KB smaller JS bundle, and roughly 3.6MB of icon fonts that were never
+  rendered are no longer shipped at all.
+
+- `source-map-explorer` was tried first but rejects this project's
+  Metro/Hermes source maps ("refers to generated column Infinity") — a
+  known compatibility gap in that (largely unmaintained) tool against
+  current Metro output, not something wrong with this project's build.
+  `expo-atlas` (added as a devDependency; run `EXPO_ATLAS=true npx expo
+export` then `npx expo-atlas`) is Expo's own actively-maintained
+  equivalent and was used to cross-check the module graph instead.
+
 ## Running the project
 
 ```bash

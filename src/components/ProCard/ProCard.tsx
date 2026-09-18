@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
@@ -14,8 +15,21 @@ export type ProCardProps = {
   onPress?: () => void;
 };
 
-/** Recommended-pro / review card — the "product card" of this design system. */
-export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps) {
+/**
+ * Recommended-pro / review card — the "product card" of this design system,
+ * and the one rendered most often (a whole grid of these per screen). Memoed
+ * so a grid full of them doesn't all re-render on an unrelated parent update
+ * (e.g. Home's search box changing on every keystroke) — only the cards
+ * whose own props actually changed do. Callers must pass a stable `onPress`
+ * (see HomeScreen's ProGridItem) or this memoization does nothing.
+ */
+export const ProCard = memo(function ProCard({
+  name,
+  role,
+  rating,
+  imageUrl,
+  onPress,
+}: ProCardProps) {
   const { colors: themeColors } = useTheme();
 
   return (
@@ -55,7 +69,7 @@ export function ProCard({ name, role, rating, imageUrl, onPress }: ProCardProps)
       {onPress ? <Ionicons name="chevron-forward" size={12} color={themeColors.textMuted} /> : null}
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -8,7 +8,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mshepeta.goit-react-native-hw"
+      "bundleIdentifier": "com.mshepeta.goit-react-native-hw",
+      "appleTeamId": "972L33AB38"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +23,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font", "expo-splash-screen", "react-native-bottom-tabs"]
+    "plugins": [
+      "expo-font",
+      "expo-splash-screen",
+      "react-native-bottom-tabs"
+    ]
   }
 }

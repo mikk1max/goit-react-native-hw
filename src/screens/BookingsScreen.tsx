@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerActions } from '@react-navigation/routers';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -12,6 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { Avatar } from '@/components/Avatar';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
@@ -30,8 +31,79 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { radii, shadows, spacing, typography } from '@/theme';
 
-/** A booking row's pencil icon was tapped — `y` (the touch's page position) anchors the dropdown near it. */
+/** A booking row's edit icon was tapped — `y` is that row's own bottom edge, so the dropdown always opens flush under that exact tile. */
 type MenuTarget = { booking: Booking; y: number };
+
+type BookingRowProps = {
+  booking: Booking;
+  /** Whether THIS row's dropdown is the one currently open — drives the pencil/close icon morph. */
+  isMenuOpen: boolean;
+  onOpenMenu: (booking: Booking, y: number) => void;
+};
+
+/**
+ * One booking tile. Its own component (not inlined in renderItem) because it
+ * needs a ref to measure itself — the dropdown opens flush under THIS row's
+ * bottom edge, not wherever inside the small edit button the finger landed.
+ */
+function BookingRow({ booking, isMenuOpen, onOpenMenu }: BookingRowProps) {
+  const { colors: themeColors } = useTheme();
+  const rowRef = useRef<View>(null);
+
+  // Morphs the edit icon into a close icon while its dropdown is open — a
+  // rotate + cross-fade between the two, so the icon itself hints "tap to
+  // close this" instead of the icon just silently staying a pencil.
+  const openProgress = useSharedValue(isMenuOpen ? 1 : 0);
+  useEffect(() => {
+    openProgress.value = withTiming(isMenuOpen ? 1 : 0, { duration: 180 });
+  }, [isMenuOpen, openProgress]);
+  const pencilStyle = useAnimatedStyle(() => ({
+    opacity: 1 - openProgress.value,
+    transform: [
+      { rotate: `${openProgress.value * 90}deg` },
+      { scale: 1 - openProgress.value * 0.4 },
+    ],
+  }));
+  const closeStyle = useAnimatedStyle(() => ({
+    opacity: openProgress.value,
+    transform: [
+      { rotate: `${(1 - openProgress.value) * -90}deg` },
+      { scale: 0.6 + openProgress.value * 0.4 },
+    ],
+  }));
+
+  const openMenu = () => {
+    rowRef.current?.measure((_x, _y, _width, height, _pageX, pageY) => {
+      onOpenMenu(booking, pageY + height);
+    });
+  };
+
+  return (
+    <View ref={rowRef} style={[styles.row, { backgroundColor: themeColors.surface }]}>
+      <Avatar imageUrl={booking.imageUrl} />
+      <View style={styles.info}>
+        <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>{booking.name}</Text>
+        <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
+          {booking.role} · {formatBookingDate(booking.dateKey)}
+        </Text>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={isMenuOpen ? 'Close booking menu' : 'Edit booking'}
+        hitSlop={8}
+        style={[styles.editButton, { backgroundColor: themeColors.surfaceMedium }]}
+        onPress={openMenu}
+      >
+        <Animated.View style={[StyleSheet.absoluteFill, styles.editIconLayer, pencilStyle]}>
+          <Ionicons name="pencil" size={16} color={themeColors.textPrimary} />
+        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFill, styles.editIconLayer, closeStyle]}>
+          <Ionicons name="close" size={18} color={themeColors.textPrimary} />
+        </Animated.View>
+      </Pressable>
+    </View>
+  );
+}
 
 /** Redux demo: every booking made from a Book appointment button lives in the `bookings` slice. */
 export function BookingsScreen() {
@@ -43,6 +115,19 @@ export function BookingsScreen() {
   const dispatch = useAppDispatch();
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [menuTarget, setMenuTarget] = useState<MenuTarget | null>(null);
+
+  // Reanimated (useSharedValue + useAnimatedStyle) — deliberately understated:
+  // just a quick fade with a couple of pixels of drop, no scale/bounce, so a
+  // menu this small doesn't call more attention to itself than the row it
+  // came from.
+  const menuProgress = useSharedValue(0);
+  useEffect(() => {
+    menuProgress.value = withTiming(menuTarget ? 1 : 0, { duration: 120 });
+  }, [menuTarget, menuProgress]);
+  const menuAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: menuProgress.value,
+    transform: [{ translateY: (1 - menuProgress.value) * -4 }],
+  }));
 
   const confirmRemove = (booking: Booking) => {
     Alert.alert('Remove booking?', `${booking.name} · ${formatBookingDate(booking.dateKey)}`, [
@@ -76,26 +161,11 @@ export function BookingsScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <View style={[styles.row, { backgroundColor: themeColors.surface }]}>
-            <Avatar imageUrl={item.imageUrl} />
-            <View style={styles.info}>
-              <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>
-                {item.name}
-              </Text>
-              <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
-                {item.role} · {formatBookingDate(item.dateKey)}
-              </Text>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Edit booking"
-              hitSlop={8}
-              style={[styles.editButton, { backgroundColor: themeColors.surfaceMedium }]}
-              onPress={(event) => setMenuTarget({ booking: item, y: event.nativeEvent.pageY })}
-            >
-              <Ionicons name="pencil" size={16} color={themeColors.textPrimary} />
-            </Pressable>
-          </View>
+          <BookingRow
+            booking={item}
+            isMenuOpen={menuTarget?.booking.id === item.id}
+            onOpenMenu={(booking, y) => setMenuTarget({ booking, y })}
+          />
         )}
       />
       <Header
@@ -146,14 +216,15 @@ export function BookingsScreen() {
       >
         <Pressable style={styles.menuOverlay} onPress={() => setMenuTarget(null)}>
           {menuTarget ? (
-            <View
+            <Animated.View
               style={[
                 styles.menu,
                 {
-                  top: menuTarget.y - spacing.md,
+                  top: menuTarget.y + spacing.xxs,
                   backgroundColor: themeColors.surface,
                   borderColor: themeColors.border,
                 },
+                menuAnimatedStyle,
               ]}
             >
               <Pressable
@@ -185,7 +256,7 @@ export function BookingsScreen() {
                 <Ionicons name="trash-outline" size={18} color={themeColors.urgent} />
                 <Text style={[typography.bodyM, { color: themeColors.urgent }]}>Remove</Text>
               </Pressable>
-            </View>
+            </Animated.View>
           ) : null}
         </Pressable>
       </Modal>
@@ -244,6 +315,10 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: radii.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editIconLayer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
