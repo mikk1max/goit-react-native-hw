@@ -1,10 +1,12 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { fetchProviderById } from '@/api/providers';
 import { Button } from '@/components/Button';
+import { GlassSurface } from '@/components/GlassSurface';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProviderProfile } from '@/components/ProviderProfile';
 import { useTheme } from '@/context/ThemeContext';
@@ -12,7 +14,9 @@ import { useAsyncData } from '@/hooks/useAsyncData';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { CategoriesStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
-import { spacing, typography } from '@/theme';
+import { toggleFavorite } from '@/store/favoritesSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { radii, spacing, typography } from '@/theme';
 
 type ProviderDetailsRoute = RouteProp<CategoriesStackParamList, 'ProviderDetails'>;
 
@@ -34,9 +38,32 @@ export function ProviderDetailsScreen() {
   const headerClearance = useFloatingHeaderClearance();
   const { bottomClearance } = useTabBarLayout();
   const { colors: themeColors } = useTheme();
+  const favoriteIds = useAppSelector((state) => state.favorites.favoriteIds);
+  const dispatch = useAppDispatch();
+  const isFavorite = providerId ? favoriteIds.includes(providerId) : false;
 
   const fetchThis = useCallback(() => fetchProviderById(providerId), [providerId]);
   const { data: provider, loading, error, retry } = useAsyncData(fetchThis);
+
+  const rightAction = provider ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      hitSlop={8}
+      onPress={() => dispatch(toggleFavorite(provider.id))}
+    >
+      <GlassSurface
+        style={[styles.headerButton, { borderColor: themeColors.surfaceMedium }]}
+        isInteractive
+      >
+        <Ionicons
+          name={isFavorite ? 'heart' : 'heart-outline'}
+          size={18}
+          color={isFavorite ? themeColors.urgent : themeColors.textPrimary}
+        />
+      </GlassSurface>
+    </Pressable>
+  ) : null;
 
   if (loading || error || !provider) {
     return (
@@ -74,7 +101,11 @@ export function ProviderDetailsScreen() {
         </View>
       </ScrollView>
 
-      <Header title="Provider profile" onBackPress={() => navigation.goBack()} />
+      <Header
+        title="Provider profile"
+        onBackPress={() => navigation.goBack()}
+        rightElement={rightAction}
+      />
     </View>
   );
 }
@@ -85,9 +116,6 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
-    // Web flexbox won't let a flex child shrink below its content's natural
-    // height unless minHeight is reset — without this the ScrollView grows
-    // past the footer instead of scrolling internally.
     minHeight: 0,
   },
   scrollContent: {
@@ -104,5 +132,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.xl,
+  },
+  headerButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

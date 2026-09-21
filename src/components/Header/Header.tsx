@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { ReactNode } from 'react';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -46,7 +46,12 @@ export function useFloatingHeaderClearance() {
  * Matches Slack's nav bar: a back chevron, a title, and a huddle button all
  * float as their own elements over the same content, side by side.
  */
-export function Header({ title, onBackPress, onMenuPress, rightElement }: HeaderProps) {
+export const Header = memo(function Header({
+  title,
+  onBackPress,
+  onMenuPress,
+  rightElement,
+}: HeaderProps) {
   const insets = useSafeAreaInsets();
   const { topClearance } = useTabBarLayout();
   const setDrawerSwipeEnabled = useSetDrawerSwipeEnabled();
@@ -59,7 +64,8 @@ export function Header({ title, onBackPress, onMenuPress, rightElement }: Header
   // of the two ever makes sense per screen (see DrawerSwipeContext.tsx).
   useFocusEffect(
     useCallback(() => {
-      setDrawerSwipeEnabled(!onBackPress);
+      const shouldEnable = !onBackPress;
+      setDrawerSwipeEnabled((prev) => (prev !== shouldEnable ? shouldEnable : prev));
     }, [setDrawerSwipeEnabled, onBackPress]),
   );
 
@@ -111,7 +117,7 @@ export function Header({ title, onBackPress, onMenuPress, rightElement }: Header
       </View>
     </View>
   );
-}
+});
 
 const SIDE_WIDTH = 40;
 

@@ -18,6 +18,6 @@ export function useTabBarLayout() {
 
   return {
     topClearance: isTopTabBar ? tabBarHeight : 0,
-    bottomClearance: isTopTabBar ? insets.bottom : tabBarHeight,
+    bottomClearance: isTopTabBar ? insets.bottom : tabBarHeight > 0 ? tabBarHeight : insets.bottom,
   };
 }

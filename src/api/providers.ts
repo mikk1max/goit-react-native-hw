@@ -113,14 +113,16 @@ const REVIEW_COMMENTS: Record<string, [string, string]> = {
   ],
 };
 
+const TRADE_CATEGORIES = categories.filter((c) => c.id !== 'favorites');
+
 /**
  * randomuser.me has no category field (and no "job" field at all) — each
- * fetched person is assigned one of FixIt's 6 categories by their position
+ * fetched person is assigned one of FixIt's 6 trade categories by their position
  * in the (seeded, so stable) results array, round-robin. This is what
  * actually makes CategoryDetailsScreen's filter real instead of cosmetic.
  */
 function categoryForIndex(index: number): (typeof categories)[number] {
-  return categories[index % categories.length];
+  return TRADE_CATEGORIES[index % TRADE_CATEGORIES.length];
 }
 
 /**
@@ -147,8 +149,11 @@ function toReview(user: RandomUser, id: string, comment: string): Review {
 function toProvider(users: RandomUser[], index: number): ApiProvider {
   const user = users[index];
   const category = categoryForIndex(index);
-  const role = ROLE_LABELS[category.id];
-  const comments = REVIEW_COMMENTS[category.id];
+  const role = ROLE_LABELS[category.id] ?? 'Specialist';
+  const comments = REVIEW_COMMENTS[category.id] ?? [
+    'Great service and very professional.',
+    'Reliable and fairly priced — would call again.',
+  ];
 
   // Two other people from the same batch, standing in as this provider's
   // reviewers — fixed offsets so they're stable across reloads and never
@@ -169,7 +174,7 @@ function toProvider(users: RandomUser[], index: number): ApiProvider {
     // same images this API always returns for demo/testing use, not
     // people connected to this app.
     imageUrl: user.picture.large,
-    pricing: PRICING_BY_ROLE[category.id],
+    pricing: PRICING_BY_ROLE[category.id] ?? [],
     reviews: [
       toReview(reviewerA, `${user.login.uuid}-r1`, comments[0]),
       toReview(reviewerB, `${user.login.uuid}-r2`, comments[1]),

@@ -2,11 +2,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { useTheme } from '@/context/ThemeContext';
 import { SCREENS } from '@/navigation/screens';
-import type { RootDrawerParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import { radii, spacing, typography } from '@/theme';
 
 const CHANNELS = [
@@ -15,28 +16,37 @@ const CHANNELS = [
   { icon: 'logo-instagram', label: '@fixit.app' },
 ] as const;
 
-/** Reached only from the Drawer, not pushed on a stack — "back" returns to the Main tabs directly. */
+/** Pushed on RootStack with native iOS slide-from-right animation and edge swipe-back. */
 export function ContactScreen() {
-  const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const headerClearance = useFloatingHeaderClearance();
   const { colors: themeColors } = useTheme();
 
   return (
     <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       <View style={[styles.content, { paddingTop: headerClearance }]}>
-        {CHANNELS.map((channel) => (
-          <View key={channel.label} style={styles.row}>
+        {CHANNELS.map((channel, index) => (
+          <Animated.View
+            key={channel.label}
+            entering={FadeInDown.delay(index * 70).duration(280)}
+            style={styles.row}
+          >
             <View style={[styles.iconBadge, { backgroundColor: themeColors.primaryLightest }]}>
               <Ionicons name={channel.icon} size={18} color={themeColors.primary} />
             </View>
             <Text style={[typography.bodyM, { color: themeColors.textPrimary }]}>
               {channel.label}
             </Text>
-          </View>
+          </Animated.View>
         ))}
       </View>
 
-      <Header title="Contact us" onBackPress={() => navigation.navigate(SCREENS.MAIN)} />
+      <Header
+        title="Contact us"
+        onBackPress={() =>
+          navigation.canGoBack() ? navigation.goBack() : navigation.navigate(SCREENS.MAIN)
+        }
+      />
     </View>
   );
 }

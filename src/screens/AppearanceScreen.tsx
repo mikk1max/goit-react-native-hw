@@ -8,7 +8,7 @@ import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import type { ThemePreference } from '@/context/ThemeContext';
 import { useTheme } from '@/context/ThemeContext';
 import { SCREENS } from '@/navigation/screens';
-import type { RootDrawerParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import { radii, spacing, typography } from '@/theme';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -19,9 +19,9 @@ const OPTIONS: { value: ThemePreference; label: string; icon: IconName }[] = [
   { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
 ];
 
-/** Context API demo — a Drawer-only screen, like Help/Contact, for picking ThemeContext's preference. */
+/** Pushed on RootStack with native iOS slide-from-right animation and edge swipe-back. */
 export function AppearanceScreen() {
-  const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const headerClearance = useFloatingHeaderClearance();
   const { themePreference, setThemePreference, colors: themeColors } = useTheme();
 
@@ -53,7 +53,12 @@ export function AppearanceScreen() {
         })}
       </View>
 
-      <Header title="Appearance" onBackPress={() => navigation.navigate(SCREENS.MAIN)} />
+      <Header
+        title="Appearance"
+        onBackPress={() =>
+          navigation.canGoBack() ? navigation.goBack() : navigation.navigate(SCREENS.MAIN)
+        }
+      />
     </View>
   );
 }

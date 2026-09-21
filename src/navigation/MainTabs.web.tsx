@@ -1,8 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DrawerActions } from '@react-navigation/routers';
 import type { ComponentProps } from 'react';
 
 import { useTheme } from '@/context/ThemeContext';
@@ -10,23 +8,27 @@ import { BookingsScreen } from '@/screens/BookingsScreen';
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
 import { CategoryDetailsScreen } from '@/screens/CategoryDetailsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
-import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
+import { MessagesScreen } from '@/screens/MessagesScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
+import { ProfileScreen } from '@/screens/ProfileScreen';
 import { ProviderDetailsScreen } from '@/screens/ProviderDetailsScreen';
 import { UrgentBookingScreen } from '@/screens/UrgentBookingScreen';
 
 import { SCREENS } from './screens';
-import type { CategoriesStackParamList, HomeStackParamList, RootTabParamList } from './types';
+import type {
+  BookingsStackParamList,
+  CategoriesStackParamList,
+  HomeStackParamList,
+  MessagesStackParamList,
+  RootTabParamList,
+} from './types';
 import type { MainTabsProps } from './MainTabs.native';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const CategoriesStack = createNativeStackNavigator<CategoriesStackParamList>();
-
-/** Opens the side Drawer — dispatched actions bubble up to the nearest ancestor that handles them, so this works from any depth. */
-function openDrawer() {
-  return DrawerActions.openDrawer();
-}
+const BookingsStack = createNativeStackNavigator<BookingsStackParamList>();
+const MessagesStack = createNativeStackNavigator<MessagesStackParamList>();
 
 function HomeStackNavigator() {
   const { colors: themeColors } = useTheme();
@@ -54,25 +56,26 @@ function CategoriesStackNavigator() {
   );
 }
 
-function MessagesTab() {
-  const navigation = useNavigation();
+function BookingsStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <PlaceholderScreen
-      title="Messages"
-      icon="chatbubble-outline"
-      onMenuPress={() => navigation.dispatch(openDrawer())}
-    />
+    <BookingsStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
+      <BookingsStack.Screen name={SCREENS.BOOKINGS_MAIN} component={BookingsScreen} />
+      <BookingsStack.Screen name={SCREENS.PRO_DETAILS} component={ProDetailsScreen} />
+    </BookingsStack.Navigator>
   );
 }
 
-function ProfileTab() {
-  const navigation = useNavigation();
+function MessagesStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <PlaceholderScreen
-      title="Profile"
-      icon="person-outline"
-      onMenuPress={() => navigation.dispatch(openDrawer())}
-    />
+    <MessagesStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
+      <MessagesStack.Screen name={SCREENS.MESSAGES_MAIN} component={MessagesScreen} />
+    </MessagesStack.Navigator>
   );
 }
 
@@ -99,6 +102,7 @@ export function MainTabs(_props: MainTabsProps) {
         headerShown: false,
         tabBarActiveTintColor: themeColors.primary,
         tabBarInactiveTintColor: themeColors.textMuted,
+        lazy: false,
       }}
     >
       <Tab.Screen
@@ -122,7 +126,7 @@ export function MainTabs(_props: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.BOOKINGS}
-        component={BookingsScreen}
+        component={BookingsStackNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name={TAB_ICONS.Bookings} size={size} color={color} />
@@ -131,7 +135,7 @@ export function MainTabs(_props: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.MESSAGES}
-        component={MessagesTab}
+        component={MessagesStackNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name={TAB_ICONS.Messages} size={size} color={color} />
@@ -140,7 +144,7 @@ export function MainTabs(_props: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.PROFILE}
-        component={ProfileTab}
+        component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name={TAB_ICONS.Profile} size={size} color={color} />

@@ -4,11 +4,14 @@
  * screen is a one-line change instead of a project-wide find-replace.
  */
 export const SCREENS = {
-  // Drawer (src/navigation/RootNavigator.tsx)
+  // Root stack & Drawer (src/navigation/RootNavigator.tsx)
   MAIN: 'Main',
+  DRAWER_MAIN: 'DrawerMain',
   HELP: 'Help',
   CONTACT: 'Contact',
   APPEARANCE: 'Appearance',
+  SIGN_IN: 'SignIn',
+  SIGN_UP: 'SignUp',
   // Tabs (src/navigation/MainTabs.native.tsx / .web.tsx)
   HOME: 'Home',
   CATEGORIES: 'Categories',
@@ -23,4 +26,9 @@ export const SCREENS = {
   CATEGORIES_MAIN: 'CategoriesMain',
   CATEGORY_DETAILS: 'CategoryDetails',
   PROVIDER_DETAILS: 'ProviderDetails',
+  // Bookings stack (pushed on top of the Bookings tab)
+  BOOKINGS_MAIN: 'BookingsMain',
+  // Messages stack (pushed on top of the Messages tab)
+  MESSAGES_MAIN: 'MessagesMain',
+  CHAT: 'Chat',
 } as const;

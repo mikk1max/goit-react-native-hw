@@ -1,8 +1,10 @@
 import { createContext, useContext } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
-export type SetDrawerSwipeEnabled = (enabled: boolean) => void;
+export type SetDrawerSwipeEnabled = Dispatch<SetStateAction<boolean>>;
 
 export const DrawerSwipeContext = createContext<SetDrawerSwipeEnabled | null>(null);
+export const DrawerSwipeValueContext = createContext<boolean>(true);
 
 /**
  * Lets whichever screen is focused declare whether the Drawer's own
@@ -21,3 +23,8 @@ export function useSetDrawerSwipeEnabled(): SetDrawerSwipeEnabled {
   }
   return setSwipeEnabled;
 }
+
+export function useDrawerSwipeEnabled(): boolean {
+  return useContext(DrawerSwipeValueContext);
+}
+

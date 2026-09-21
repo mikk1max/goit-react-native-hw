@@ -1,11 +1,12 @@
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { useTheme } from '@/context/ThemeContext';
 import { SCREENS } from '@/navigation/screens';
-import type { RootDrawerParamList } from '@/navigation/types';
+import type { RootStackParamList } from '@/navigation/types';
 import { spacing, typography } from '@/theme';
 
 const FAQS = [
@@ -24,9 +25,9 @@ const FAQS = [
   },
 ];
 
-/** Reached only from the Drawer, not pushed on a stack — "back" returns to the Main tabs directly. */
+/** Pushed on RootStack with native iOS slide-from-right animation and edge swipe-back. */
 export function HelpScreen() {
-  const navigation = useNavigation<NavigationProp<RootDrawerParamList>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const headerClearance = useFloatingHeaderClearance();
   const { colors: themeColors } = useTheme();
 
@@ -34,18 +35,27 @@ export function HelpScreen() {
     <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.content, { paddingTop: headerClearance }]}>
-          {FAQS.map((faq) => (
-            <View key={faq.question} style={styles.item}>
+          {FAQS.map((faq, index) => (
+            <Animated.View
+              key={faq.question}
+              entering={FadeInDown.delay(index * 70).duration(280)}
+              style={styles.item}
+            >
               <Text style={[typography.sectionTitle, { color: themeColors.text }]}>
                 {faq.question}
               </Text>
               <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>{faq.answer}</Text>
-            </View>
+            </Animated.View>
           ))}
         </View>
       </ScrollView>
 
-      <Header title="Help & Support" onBackPress={() => navigation.navigate(SCREENS.MAIN)} />
+      <Header
+        title="Help & Support"
+        onBackPress={() =>
+          navigation.canGoBack() ? navigation.goBack() : navigation.navigate(SCREENS.MAIN)
+        }
+      />
     </View>
   );
 }

@@ -1,14 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { ComponentProps } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
 import { useTheme } from '@/context/ThemeContext';
+import { logoutUser } from '@/store/authSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { radii, spacing, typography } from '@/theme';
 
 import { SCREENS } from './screens';
+import type { RootStackParamList } from './types';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -36,8 +40,8 @@ function MenuRow({ icon, label, tintColor, pressedBackgroundColor, onPress }: Me
 /**
  * Custom Drawer content, styled to match the rest of the app instead of the
  * library's default list — this is what "☰" (the menu button on every root
- * tab screen) opens. Sign out has nothing to actually sign out of (no auth
- * in this app), so it's an honest placeholder alert rather than a real screen.
+ * tab screen) opens. Shows the real signed-in user (or "Guest", with a Sign
+ * in row) now that FixIt has an actual account system — see src/store/authSlice.ts.
  *
  * Uses a plain ScrollView, not the library's own DrawerContentScrollView —
  * that one wraps content in a reanimated/gesture-handler pan responder that,
@@ -51,6 +55,27 @@ export function DrawerContent({ navigation }: DrawerContentComponentProps) {
   // (and everything else) — the preference itself lives on its own
   // Appearance screen, not a switch here.
   const { colors: themeColors } = useTheme();
+  const dispatch = useAppDispatch();
+  const { status, user } = useAppSelector((state) => state.auth);
+  const isAuthenticated = status === 'authenticated';
+
+  const navigateTo = (screen: keyof RootStackParamList) => {
+    navigation.closeDrawer();
+    const parent = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (parent) {
+      parent.navigate(screen as never);
+    } else {
+      navigation.navigate(screen as never);
+    }
+  };
+
+  const confirmSignOut = () => {
+    navigation.closeDrawer();
+    Alert.alert('Sign out?', "You'll need to sign in again to book or message pros.", [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => dispatch(logoutUser()) },
+    ]);
+  };
 
   return (
     <ScrollView
@@ -59,8 +84,12 @@ export function DrawerContent({ navigation }: DrawerContentComponentProps) {
     >
       <View style={styles.profile}>
         <Avatar size="lg" />
-        <Text style={[typography.h4, styles.name, { color: themeColors.textPrimary }]}>Guest</Text>
-        <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>Welcome to FixIt</Text>
+        <Text style={[typography.h4, styles.name, { color: themeColors.textPrimary }]}>
+          {isAuthenticated ? user!.name : 'Guest'}
+        </Text>
+        <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
+          {isAuthenticated ? user!.email : 'Welcome to FixIt'}
+        </Text>
       </View>
 
       <View style={[styles.divider, { backgroundColor: themeColors.borderLight }]} />
@@ -70,14 +99,14 @@ export function DrawerContent({ navigation }: DrawerContentComponentProps) {
         label="Help & Support"
         tintColor={themeColors.textPrimary}
         pressedBackgroundColor={themeColors.surface}
-        onPress={() => navigation.navigate(SCREENS.HELP)}
+        onPress={() => navigateTo(SCREENS.HELP)}
       />
       <MenuRow
         icon="call-outline"
         label="Contact us"
         tintColor={themeColors.textPrimary}
         pressedBackgroundColor={themeColors.surface}
-        onPress={() => navigation.navigate(SCREENS.CONTACT)}
+        onPress={() => navigateTo(SCREENS.CONTACT)}
       />
 
       <View style={[styles.divider, { backgroundColor: themeColors.borderLight }]} />
@@ -87,21 +116,28 @@ export function DrawerContent({ navigation }: DrawerContentComponentProps) {
         label="Appearance"
         tintColor={themeColors.textPrimary}
         pressedBackgroundColor={themeColors.surface}
-        onPress={() => navigation.navigate(SCREENS.APPEARANCE)}
+        onPress={() => navigateTo(SCREENS.APPEARANCE)}
       />
 
       <View style={[styles.divider, { backgroundColor: themeColors.borderLight }]} />
 
-      <MenuRow
-        icon="log-out-outline"
-        label="Sign out"
-        tintColor={themeColors.urgent}
-        pressedBackgroundColor={themeColors.surface}
-        onPress={() => {
-          navigation.closeDrawer();
-          Alert.alert('Signed out', 'This is a demo build — there is no account to sign out of.');
-        }}
-      />
+      {isAuthenticated ? (
+        <MenuRow
+          icon="log-out-outline"
+          label="Sign out"
+          tintColor={themeColors.urgent}
+          pressedBackgroundColor={themeColors.surface}
+          onPress={confirmSignOut}
+        />
+      ) : (
+        <MenuRow
+          icon="log-in-outline"
+          label="Sign in"
+          tintColor={themeColors.primary}
+          pressedBackgroundColor={themeColors.surface}
+          onPress={() => navigateTo(SCREENS.SIGN_IN)}
+        />
+      )}
     </ScrollView>
   );
 }

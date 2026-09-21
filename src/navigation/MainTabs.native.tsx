@@ -1,7 +1,5 @@
 import { createNativeBottomTabNavigator } from '@bottom-tabs/react-navigation';
-import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DrawerActions } from '@react-navigation/routers';
 import { Platform } from 'react-native';
 import type { AppleIcon } from 'react-native-bottom-tabs';
 
@@ -10,23 +8,27 @@ import { BookingsScreen } from '@/screens/BookingsScreen';
 import { CategoriesScreen } from '@/screens/CategoriesScreen';
 import { CategoryDetailsScreen } from '@/screens/CategoryDetailsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
-import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
+import { MessagesScreen } from '@/screens/MessagesScreen';
 import { ProDetailsScreen } from '@/screens/ProDetailsScreen';
+import { ProfileScreen } from '@/screens/ProfileScreen';
 import { ProviderDetailsScreen } from '@/screens/ProviderDetailsScreen';
 import { UrgentBookingScreen } from '@/screens/UrgentBookingScreen';
 
 import { SCREENS } from './screens';
-import type { CategoriesStackParamList, HomeStackParamList, RootTabParamList } from './types';
+import type {
+  BookingsStackParamList,
+  CategoriesStackParamList,
+  HomeStackParamList,
+  MessagesStackParamList,
+  RootTabParamList,
+} from './types';
 import type { ResolvedTabIcon } from './useAndroidTabIcons';
 
 const Tab = createNativeBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const CategoriesStack = createNativeStackNavigator<CategoriesStackParamList>();
-
-/** Opens the side Drawer — dispatched actions bubble up to the nearest ancestor that handles them, so this works from any depth. */
-function openDrawer() {
-  return DrawerActions.openDrawer();
-}
+const BookingsStack = createNativeStackNavigator<BookingsStackParamList>();
+const MessagesStack = createNativeStackNavigator<MessagesStackParamList>();
 
 /** Home pushes a Pro Details screen — that's where the native slide + swipe-back shows up. */
 function HomeStackNavigator() {
@@ -56,25 +58,28 @@ function CategoriesStackNavigator() {
   );
 }
 
-function MessagesTab() {
-  const navigation = useNavigation();
+/** Bookings pushes a Pro Details screen when a booking tile is tapped. */
+function BookingsStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <PlaceholderScreen
-      title="Messages"
-      icon="chatbubble-outline"
-      onMenuPress={() => navigation.dispatch(openDrawer())}
-    />
+    <BookingsStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
+      <BookingsStack.Screen name={SCREENS.BOOKINGS_MAIN} component={BookingsScreen} />
+      <BookingsStack.Screen name={SCREENS.PRO_DETAILS} component={ProDetailsScreen} />
+    </BookingsStack.Navigator>
   );
 }
 
-function ProfileTab() {
-  const navigation = useNavigation();
+/** Messages conversation list — individual threads open in the root Drawer without tab chrome. */
+function MessagesStackNavigator() {
+  const { colors: themeColors } = useTheme();
   return (
-    <PlaceholderScreen
-      title="Profile"
-      icon="person-outline"
-      onMenuPress={() => navigation.dispatch(openDrawer())}
-    />
+    <MessagesStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.white } }}
+    >
+      <MessagesStack.Screen name={SCREENS.MESSAGES_MAIN} component={MessagesScreen} />
+    </MessagesStack.Navigator>
   );
 }
 
@@ -114,6 +119,9 @@ export function MainTabs({ androidIcons }: MainTabsProps) {
     <Tab.Navigator
       tabBarActiveTintColor={themeColors.primary}
       tabBarInactiveTintColor={themeColors.textMuted}
+      screenOptions={{
+        lazy: false,
+      }}
     >
       <Tab.Screen
         name={SCREENS.HOME}
@@ -139,7 +147,7 @@ export function MainTabs({ androidIcons }: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.BOOKINGS}
-        component={BookingsScreen}
+        component={BookingsStackNavigator}
         options={{
           tabBarLabel: 'Bookings',
           tabBarIcon: makeTabIcon('calendar', SCREENS.BOOKINGS, androidIcons),
@@ -147,7 +155,7 @@ export function MainTabs({ androidIcons }: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.MESSAGES}
-        component={MessagesTab}
+        component={MessagesStackNavigator}
         options={{
           tabBarLabel: 'Messages',
           tabBarIcon: makeTabIcon(
@@ -159,7 +167,7 @@ export function MainTabs({ androidIcons }: MainTabsProps) {
       />
       <Tab.Screen
         name={SCREENS.PROFILE}
-        component={ProfileTab}
+        component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: makeTabIcon(
