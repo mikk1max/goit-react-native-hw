@@ -2,7 +2,13 @@ import { useId } from 'react';
 import Svg, { G, Mask, Path, Rect } from 'react-native-svg';
 
 export type TradeIconName =
-  'plumbing' | 'electrical' | 'cleaning' | 'painting' | 'carpentry' | 'gardening';
+  | 'favorites'
+  | 'plumbing'
+  | 'electrical'
+  | 'cleaning'
+  | 'painting'
+  | 'carpentry'
+  | 'gardening';
 
 export type TradeIconProps = {
   name: TradeIconName;
@@ -24,6 +30,12 @@ export function TradeIcon({ name, size = 20, color = '#2F3036' }: TradeIconProps
 
   return (
     <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      {name === 'favorites' && (
+        <Path
+          d="M10 17.25S2.5 12 2.5 6.75A4.25 4.25 0 0 1 10 3.85a4.25 4.25 0 0 1 7.5 2.9C17.5 12 10 17.25 10 17.25Z"
+          fill={color}
+        />
+      )}
       {name === 'plumbing' && (
         <Path
           d="M10 2C13 5.99994 16 9.49988 16 12.9998C16 14.5911 15.3679 16.1172 14.2426 17.2424C13.1174 18.3676 11.5913 18.9997 10 18.9997C8.4087 18.9997 6.88258 18.3676 5.75736 17.2424C4.63214 16.1172 4 14.5911 4 12.9998C4 9.49988 7 5.99994 10 2Z"

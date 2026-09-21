@@ -12,6 +12,7 @@ import { ProCard } from '@/components/ProCard';
 import { useTheme } from '@/context/ThemeContext';
 import { todayDateKey } from '@/data/mockData';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
 import { MAX_BOOKINGS_PER_DAY, addBooking, countBookingsOnDate } from '@/store/bookingsSlice';
@@ -30,8 +31,10 @@ export function UrgentBookingScreen() {
   const { cardWidth } = useResponsiveLayout();
   const { colors: themeColors } = useTheme();
   const { data: pros = [], loading, error, retry } = useAsyncData(fetchProviders);
-  const bookings = useAppSelector((state) => state.bookings);
+  const bookings = useAppSelector((state) => state.bookings.items);
+  const favoriteIds = useAppSelector((state) => state.favorites.favoriteIds);
   const dispatch = useAppDispatch();
+  const requireAuth = useRequireAuth();
   const [bookedProvider, setBookedProvider] = useState<ApiProvider | null>(null);
 
   const today = todayDateKey();
@@ -40,29 +43,41 @@ export function UrgentBookingScreen() {
   // about anyone else, so no list-wide "today is full" banner applies.
   const isFullToday = (pro: ApiProvider) =>
     countBookingsOnDate(bookings, pro.id, today) >= MAX_BOOKINGS_PER_DAY;
-  const visiblePros = pros.filter((pro) => !isFullToday(pro));
+  const availablePros = pros.filter((pro) => !isFullToday(pro));
+  const favoritePros = availablePros.filter((pro) => favoriteIds.includes(pro.id));
+  const hasFavorites = favoritePros.length > 0;
+  const visiblePros = hasFavorites ? favoritePros : availablePros;
 
   const bookNow = (pro: ApiProvider) => {
-    // A stray tap in a scrolling list shouldn't book someone outright — this
-    // is the one extra step between "tapped a row" and "actually booked".
-    Alert.alert(`Book ${pro.name}?`, `${pro.role} · today`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Book now',
-        onPress: () => {
-          dispatch(
-            addBooking({
-              providerId: pro.id,
-              name: pro.name,
-              role: pro.role,
-              imageUrl: pro.imageUrl,
-              dateKey: today,
-            }),
-          );
-          setBookedProvider(pro);
+    requireAuth(() => {
+      // A stray tap in a scrolling list shouldn't book someone outright —
+      // this is the one extra step between "tapped a row" and "actually booked".
+      Alert.alert(`Book ${pro.name}?`, `${pro.role} · today`, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Book now',
+          onPress: async () => {
+            try {
+              await dispatch(
+                addBooking({
+                  providerId: pro.id,
+                  name: pro.name,
+                  role: pro.role,
+                  imageUrl: pro.imageUrl,
+                  dateKey: today,
+                }),
+              ).unwrap();
+              setBookedProvider(pro);
+            } catch (err) {
+              Alert.alert(
+                'Could not book',
+                err instanceof Error ? err.message : 'Please try again.',
+              );
+            }
+          },
         },
-      },
-    ]);
+      ]);
+    });
   };
 
   return (
@@ -87,15 +102,24 @@ export function UrgentBookingScreen() {
           data={visiblePros}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
-            <Text
-              style={[
-                typography.sectionTitle,
-                styles.listHeader,
-                { color: themeColors.textPrimary },
-              ]}
-            >
-              Tap a pro to book them for today
-            </Text>
+            <View style={styles.listHeaderWrap}>
+              <Text
+                style={[
+                  typography.sectionTitle,
+                  styles.listHeader,
+                  { color: themeColors.textPrimary },
+                ]}
+              >
+                {hasFavorites
+                  ? 'Your favorite pros available today'
+                  : 'Tap a pro to book them for today'}
+              </Text>
+              {hasFavorites ? (
+                <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
+                  Showing available pros from your favorites.
+                </Text>
+              ) : null}
+            </View>
           }
           ListEmptyComponent={
             <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>
@@ -148,6 +172,9 @@ const styles = StyleSheet.create({
   },
   listHeader: {
     gap: spacing.xxs,
+  },
+  listHeaderWrap: {
     marginBottom: spacing.sm,
+    gap: spacing.xxs,
   },
 });

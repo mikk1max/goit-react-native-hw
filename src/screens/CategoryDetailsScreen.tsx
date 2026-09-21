@@ -1,10 +1,10 @@
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
-import { fetchProvidersByCategory } from '@/api/providers';
+import { fetchProviders, fetchProvidersByCategory } from '@/api/providers';
 import { Button } from '@/components/Button';
 import { Header, useFloatingHeaderClearance } from '@/components/Header';
 import { ProCard } from '@/components/ProCard';
@@ -14,6 +14,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SCREENS } from '@/navigation/screens';
 import type { CategoriesStackParamList } from '@/navigation/types';
 import { useTabBarLayout } from '@/navigation/useTabBarLayout';
+import { useAppSelector } from '@/store/hooks';
 import { spacing, typography } from '@/theme';
 
 type CategoryDetailsRoute = RouteProp<CategoriesStackParamList, 'CategoryDetails'>;
@@ -21,11 +22,7 @@ type CategoriesStackNav = NativeStackNavigationProp<CategoriesStackParamList>;
 
 /**
  * The provider directory for one category — reached from CategoriesScreen,
- * fetched live the same way as Home's Recommended pros. randomuser.me has
- * no category concept at all, so fetchProvidersByCategory assigns + filters
- * client-side (see api/providers.ts) — a real backend would do this
- * filtering itself, but the result here is a genuinely different directory
- * per category, not the same list relabeled.
+ * fetched live the same way as Home's Recommended pros.
  */
 export function CategoryDetailsScreen() {
   const navigation = useNavigation<CategoriesStackNav>();
@@ -36,8 +33,22 @@ export function CategoryDetailsScreen() {
   const { bottomClearance } = useTabBarLayout();
   const { colors: themeColors } = useTheme();
 
-  const fetchThis = useCallback(() => fetchProvidersByCategory(categoryId), [categoryId]);
+  const favoriteIds = useAppSelector((state) => state.favorites.favoriteIds);
+
+  const fetchThis = useCallback(() => {
+    if (categoryId === 'favorites') {
+      return fetchProviders();
+    }
+    return fetchProvidersByCategory(categoryId);
+  }, [categoryId]);
   const { data: providers = [], loading, error, retry } = useAsyncData(fetchThis);
+
+  const displayedProviders = useMemo(() => {
+    if (categoryId === 'favorites') {
+      return providers.filter((p) => favoriteIds.includes(p.id));
+    }
+    return providers;
+  }, [categoryId, providers, favoriteIds]);
 
   return (
     <View style={[styles.screen, { backgroundColor: themeColors.white }]}>
@@ -60,23 +71,29 @@ export function CategoryDetailsScreen() {
             styles.listContent,
             { paddingTop: headerClearance, paddingBottom: bottomClearance + spacing.xl },
           ]}
-          data={providers}
+          data={displayedProviders}
           numColumns={columns}
           columnWrapperStyle={columns > 1 ? styles.row : undefined}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <View style={styles.listHeader}>
-              <Text style={[typography.sectionTitle, { color: themeColors.text }]}>
-                Available {categoryLabel.toLowerCase()} pros
+              <Text style={[typography.sectionTitle, { color: themeColors.textPrimary }]}>
+                {categoryId === 'favorites'
+                  ? 'Your favorite pros'
+                  : `Available ${categoryLabel.toLowerCase()} pros`}
               </Text>
               <Text style={[typography.bodyS, { color: themeColors.textMuted }]}>
-                Live directory data.
+                {categoryId === 'favorites'
+                  ? 'Pros you marked as favorite.'
+                  : 'Live directory data.'}
               </Text>
             </View>
           }
           ListEmptyComponent={
             <Text style={[typography.bodyM, { color: themeColors.textMuted }]}>
-              No providers found.
+              {categoryId === 'favorites'
+                ? 'No favorite pros yet — tap the heart icon on any pro card to add them here.'
+                : 'No providers found.'}
             </Text>
           }
           renderItem={({ item }) => (

@@ -15,6 +15,7 @@ export type Review = {
 };
 
 export const categories: Category[] = [
+  { id: 'favorites', label: 'Favorites', icon: 'favorites' },
   { id: 'plumbing', label: 'Plumbing', icon: 'plumbing' },
   { id: 'electrical', label: 'Electrical', icon: 'electrical' },
   { id: 'cleaning', label: 'Cleaning', icon: 'cleaning' },
