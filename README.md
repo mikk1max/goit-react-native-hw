@@ -4,11 +4,92 @@ FixIt is a cross-platform mobile application built with **React Native**, **Expo
 
 The application features full **Firebase Authentication**, **Firestore cloud persistence**, native iOS **Liquid Glass** UI styling, native 60/120fps navigation transitions, and **Reanimated** fluid cascading animations.
 
-**Figma:** [Shepeta_cross_assignments](https://www.figma.com/design/MJK386ryDWY8bcejg00axx/Shepeta_cross_assignments)
+- **Final Project Presentation (PDF):** [FixIt Final Project Presentation (PDF)](docs/presentation.pdf)
+- **Figma Design & Interactive Prototype:** [Shepeta_cross_assignments on Figma](https://www.figma.com/design/MJK386ryDWY8bcejg00axx/Shepeta_cross_assignments)
 
 ---
 
-## Screenshots
+## 1. Initial Application Analysis & Improvement Strategy
+
+### Baseline Capabilities (What Worked in Initial Version)
+- **UI Scaffolding & Component Templates:** Initial screens (Home, Categories, Pro Profile) rendered basic layouts with responsive width detection (`useResponsiveLayout`) and baseline theme tokens (`colors.ts`, `spacing.ts`).
+- **External Mock Data Feed:** Fetched demo provider profiles via seeded `randomuser.me` requests to populate professional headshots, names, and ratings without hardcoding static mock arrays.
+- **Fundamental Navigation Structure:** Established a bottom tabs and drawer navigation layout with parameter passing to detail screens.
+
+### Identified Bottlenecks & Architectural Limitations
+1. **Lack of User Authentication & Ephemeral Session State:** The baseline app had no account system or registration flow. User activity, bookings, and customer preferences were kept only in volatile memory and wiped upon app reload. There was no user isolation, security, or persistent identity.
+2. **Static & Non-Interactive Scheduling:** The booking flow was primitive and lacked calendar visualization. Users could not view an entire month of appointments, could not see busy/booked dates at a glance with indicators, and had no ability to modify, reschedule, or cancel active appointments.
+3. **Absence of Direct Client-Provider Communication & Personalization:** Homeowners could not communicate with hired professionals to coordinate arrival, ask questions, or confirm quotes. Furthermore, there was no way to bookmark favorite professionals or filter urgent requests by trusted contractors.
+4. **Platform Visual & Transition Deficits:** Screen transitions lacked iOS-native 60/120fps fluidity, drawer gestures collided with edge swipe-back navigation, tab bars flickered on tab switches, and text input fields lacked vertical centering and consistent Liquid Glass styling.
+
+### Key Improvement Vectors Defined & Implemented
+1. **Vector 1: Cloud-Native Backend & Secure Authentication (Firebase & Firestore)**
+   - Integrated Firebase Authentication (`createUserWithEmailAndPassword`, `signInWithEmailAndPassword`, `signOut`).
+   - Secure session management backed by hardware-level encrypted storage via `expo-secure-store` (iOS Keychain / Android Keystore) with sanitized alphanumeric keys.
+   - Real-time Firestore document synchronizations for appointments (`bookings`), 1:1 direct messaging threads (`conversations` and `messages`), and curated contractor bookmarks (`favorites`).
+2. **Vector 2: Full-Featured Monthly Calendar & Dynamic Scheduling Engine**
+   - Designed and built an interactive monthly calendar (`MonthCalendar`) with active booking dot indicators, seamless month-to-month transitions, and day-specific appointment filtering.
+   - Implemented an availability picker modal (`AvailabilityCalendar`) enabling users to reschedule existing bookings with automated capacity checks (per-pro booking limits).
+3. **Vector 3: Native iOS Liquid Glass Aesthetics, 60/120fps Transitions & Fluid Micro-Interactions**
+   - Adopted native iOS 26+ Liquid Glass (`GlassSurface` / `expo-glass-effect`) with consistent 48px heights, rounded radii, and subtle glass borders for all form inputs.
+   - Implemented native stack screen transitions with interactive edge swipe-back gestures, eliminating navigation conflicts.
+   - Introduced staggered entrance animations (`react-native-reanimated`) across Home, Profile, Pro details, and Help screens for an elevated, production-ready user experience.
+
+---
+
+## 2. State Management Architecture: Context API vs. Redux Toolkit
+
+The application employs a deliberate, dual-tier state management architecture, separating low-frequency UI presentation preferences from high-frequency, asynchronous business domain data:
+
+```mermaid
+graph TD
+    subgraph UI_Presentation ["UI Presentation Layer (React Context API)"]
+        TC["ThemeContext"] -->|"Light / Dark / System"| OS["Native Appearance API"]
+        TC -->|"Resolved Colors"| RN["React Navigation Theme"]
+        TC -->|"Surface Tints"| GS["GlassSurface & Chrome"]
+    end
+
+    subgraph Business_Domain ["Business Domain Layer (Redux Toolkit)"]
+        RT["Central Redux Store"]
+        RT --> AS["authSlice: User Session & Keychain"]
+        RT --> BS["bookingsSlice: Appointments & Availability"]
+        RT --> CS["chatsSlice: 1:1 Messages & Threads"]
+        RT --> FS["favoritesSlice: Bookmarked Pros"]
+        AS <--> FB[("Firebase Auth & SecureStore")]
+        BS <--> FSDB[("Firestore: bookings")]
+        CS <--> FSDB2[("Firestore: conversations & messages")]
+        FS <--> FSDB3[("Firestore: favorites")]
+    end
+```
+
+### Why React Context API for Theming (`ThemeContext.tsx`)
+- **Low Mutation Frequency:** Theme preferences (`light`, `dark`, `system`) change very infrequently — exclusively upon manual user selection or system OS appearance mode changes. Context API is optimal for low-frequency global settings without introducing action/reducer boilerplate.
+- **Direct Native & Navigation Integration:** React Navigation requires a theme object passed directly to the root `NavigationContainer`. `ThemeContext` directly synchronizes with native iOS Liquid Glass materials and invokes `Appearance.setColorScheme()` without needing dispatchers or intermediate middleware.
+- **Clean Decoupling:** Keeps presentation concerns isolated from core business data, ensuring theme switches never trigger unnecessary business logic recalculations.
+
+### Why Redux Toolkit for Authentication, Bookings, Chats & Favorites (`src/store/`)
+- **Asynchronous Cloud Orchestration (`createAsyncThunk`):** Authentication with Firebase, Firestore realtime queries, network retries, and optimistic UI updates involve complex asynchronous lifecycles (`pending`, `fulfilled`, `rejected`). Redux Toolkit structures these workflows cleanly without cluttering UI components with side-effect logic.
+- **Relational & Interdependent Domain State:**
+  - `authSlice` manages user identity and SecureStore token persistence.
+  - `bookingsSlice` tracks user appointments, calculates pro availability per date, and blocks overbooked slots (`MAX_BOOKINGS_PER_DAY = 3`).
+  - `chatsSlice` manages real-time message streams, unread badges, and auto-responses.
+  - `favoritesSlice` synchronizes bookmarked contractor IDs, directly filtering urgent callout candidates in `UrgentBookingScreen` and generating a dynamic "Favorites" category chip.
+- **Selective Subscriptions & Re-render Isolation (`useAppSelector`):** Unlike Context API — where any state update re-renders all consuming components unless heavily optimized with memoization — Redux Toolkit's fine-grained selectors ensure that updating a single chat message or toggling a favorite pro only re-renders the specific list item or heart icon, preserving 60/120fps UI responsiveness.
+- **Single Source of Truth & Predictable Debugging:** Centralized state transitions provide complete traceability and predictable recovery states if network operations fail.
+
+---
+
+## 3. Project Presentation & Design Artifacts
+
+| Resource | Format | Description & Link |
+| --- | --- | --- |
+| **Final Project Presentation (PDF)** | **PDF (16:9 Deck)** | [Download / View FixIt Presentation PDF](docs/presentation.pdf) |
+| **Figma UI/UX Design System** | **Figma** | [Figma Design File: Shepeta_cross_assignments](https://www.figma.com/design/MJK386ryDWY8bcejg00axx/Shepeta_cross_assignments) |
+| **Presentation Deck Content** | **PDF / 9 Slides** | Complete slide deck covering project background, problem analysis, dual-tier architecture (Context API vs. Redux Toolkit), Firebase data models, and real iPhone 13 Pro screenshots. |
+
+---
+
+## 4. Screenshots
 
 > [!NOTE]
 > The screenshots below were captured on a physical iPhone 13 Pro device running iOS 27 with native Liquid Glass UI. All screenshots are rendered at a fixed width of 260px in a responsive grid.
@@ -71,7 +152,7 @@ Home in landscape orientation:
 
 ---
 
-## Core Features & Architecture
+## 5. Core Features & Technical Implementation
 
 ### 1. Cloud Backend & Realtime Storage: Firebase & Firestore
 - **Authentication (`src/api/auth.ts`, `src/store/authSlice.ts`):** Complete user authentication powered by Firebase Auth (`createUserWithEmailAndPassword`, `signInWithEmailAndPassword`, `signOut`).
@@ -107,7 +188,7 @@ Home in landscape orientation:
 
 ---
 
-## Components
+## 6. Components
 
 Every component resides in its own folder (`Component.tsx` + `index.ts`), styled with `StyleSheet.create()` and referencing centralized theme tokens:
 
@@ -128,7 +209,7 @@ Every component resides in its own folder (`Component.tsx` + `index.ts`), styled
 
 ---
 
-## Responsive Layout
+## 7. Responsive Layout
 
 The `useResponsiveLayout` hook (`src/hooks/useResponsiveLayout.ts`) dynamically adapts to window dimensions (`useWindowDimensions`):
 - **< 600dp (Smartphone portrait):** Content fills the screen width; cards stack in a 1-column layout.
@@ -136,7 +217,7 @@ The `useResponsiveLayout` hook (`src/hooks/useResponsiveLayout.ts`) dynamically 
 
 ---
 
-## Running the project
+## 8. Running the project
 
 ### Prerequisites:
 - Node.js ≥ 20
@@ -168,7 +249,7 @@ npm run format       # Prettier formatting check
 
 ---
 
-## Project Structure
+## 9. Project Structure
 
 ```
 App.tsx
