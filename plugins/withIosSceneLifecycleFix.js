@@ -2,6 +2,18 @@ const { withInfoPlist, withDangerousMod } = require("expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
 
+/**
+ * `ExpoAppSceneDelegate` (expo >=57.0.23, see ios/AppDelegates/ExpoAppSceneDelegate.swift
+ * in the `expo` package) does everything a scene delegate needs — creating the
+ * window from the connecting scene, starting React Native in it, and forwarding
+ * deep links/user activities/quick actions back to the app delegate. Subclassing
+ * it directly means this plugin no longer has to hand-roll that forwarding itself.
+ */
+const SCENE_DELEGATE_CLASS = `
+@objc(SceneDelegate)
+class SceneDelegate: ExpoAppSceneDelegate {}
+`;
+
 const SCENE_CONFIG_METHOD = `
   // MARK: - UISceneSession Lifecycle
   func application(
@@ -18,58 +30,24 @@ const SCENE_CONFIG_METHOD = `
   }
 `;
 
-const SCENE_DELEGATE_CLASS = `
-@objc(SceneDelegate)
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-  var window: UIWindow?
+const FACTORY_PROVIDER_CONFORMANCE = `
+extension AppDelegate: ExpoReactNativeFactoryProvider {}
+`;
 
-  func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    guard let windowScene = scene as? UIWindowScene else { return }
-
-    let appDelegate = UIApplication.shared.delegate as? AppDelegate
-    let targetWindow = appDelegate?.window ?? UIWindow(windowScene: windowScene)
-    targetWindow.windowScene = windowScene
-    self.window = targetWindow
-    appDelegate?.window = targetWindow
-    targetWindow.makeKeyAndVisible()
-
-    if let url = connectionOptions.urlContexts.first?.url {
-      _ = (UIApplication.shared.delegate as? AppDelegate)?.application(UIApplication.shared, open: url, options: [:])
-    } else if let userActivity = connectionOptions.userActivities.first {
-      _ = (UIApplication.shared.delegate as? AppDelegate)?.application(UIApplication.shared, continue: userActivity, restorationHandler: { _ in })
-    }
-  }
-
-  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-    if let url = URLContexts.first?.url {
-      _ = (UIApplication.shared.delegate as? AppDelegate)?.application(UIApplication.shared, open: url, options: [:])
-    }
-  }
-
-  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
-    _ = (UIApplication.shared.delegate as? AppDelegate)?.application(UIApplication.shared, continue: userActivity, restorationHandler: { _ in })
-  }
-
-  func sceneDidBecomeActive(_ scene: UIScene) {
-    (UIApplication.shared.delegate as? AppDelegate)?.applicationDidBecomeActive(UIApplication.shared)
-  }
-
-  func sceneWillResignActive(_ scene: UIScene) {
-    (UIApplication.shared.delegate as? AppDelegate)?.applicationWillResignActive(UIApplication.shared)
-  }
-
-  func sceneWillEnterForeground(_ scene: UIScene) {
-    (UIApplication.shared.delegate as? AppDelegate)?.applicationWillEnterForeground(UIApplication.shared)
-  }
-
-  func sceneDidEnterBackground(_ scene: UIScene) {
-    (UIApplication.shared.delegate as? AppDelegate)?.applicationDidEnterBackground(UIApplication.shared)
-  }
-}
+/**
+ * The window is now created by SceneDelegate (from the connecting UIWindowScene)
+ * instead of here — starting React Native a second time in a plain, scene-less
+ * `UIWindow(frame:)` would spin up a second bridge/factory alongside the one the
+ * scene delegate starts.
+ */
+const OLD_DIRECT_START_BLOCK = `
+#if os(iOS) || os(tvOS)
+    window = UIWindow(frame: UIScreen.main.bounds)
+    factory.startReactNative(
+      withModuleName: "main",
+      in: window,
+      launchOptions: launchOptions)
+#endif
 `;
 
 const withIosSceneLifecycleFix = (config) => {
@@ -101,6 +79,10 @@ const withIosSceneLifecycleFix = (config) => {
       }
       let contents = fs.readFileSync(appDelegatePath, "utf8");
 
+      if (contents.includes(OLD_DIRECT_START_BLOCK.trim())) {
+        contents = contents.replace(`${OLD_DIRECT_START_BLOCK.trim()}\n`, "");
+      }
+
       if (!contents.includes("configurationForConnecting")) {
         const classMatch = contents.match(
           /class AppDelegate:\s*ExpoAppDelegate\s*\{([\s\S]*?\n)\}/,
@@ -113,8 +95,12 @@ const withIosSceneLifecycleFix = (config) => {
         }
       }
 
+      if (!contents.includes("ExpoReactNativeFactoryProvider {}")) {
+        contents = `${contents.trimEnd()}\n${FACTORY_PROVIDER_CONFORMANCE}`;
+      }
+
       if (!contents.includes("class SceneDelegate")) {
-        contents = `${contents.trimEnd()}\n${SCENE_DELEGATE_CLASS}\n`;
+        contents = `${contents.trimEnd()}\n${SCENE_DELEGATE_CLASS}`;
       }
 
       fs.writeFileSync(appDelegatePath, contents);
